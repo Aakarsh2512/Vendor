@@ -1,0 +1,5 @@
+Vendor registration details
+Legal business name: Maple Harbor Business Supplies Ltd.
+Country: India
+PAN: MAPLE5678A
+Contact email: vendor.case02@example.com

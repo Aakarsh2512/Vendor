@@ -1,0 +1,5 @@
+Vendor registration details
+Legal business name: Cedar Ridge Office Supplies Pvt. Ltd.
+Country: India
+PAN: DEMOA1234F
+Contact email: vendor.case01@example.com

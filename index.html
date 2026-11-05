@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#eef4f5" />
+    <title>ASA Vendor Review Hub</title>
+    <script>
+      try {
+        if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
+      } catch {}
+    </script>
+    <link rel="stylesheet" href="styles.css?v=11" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" data-view="overview" aria-label="ASA Vendor Review Hub home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 9.75v12.5L16 28.5 5 22.25V9.75L16 3.5Z" stroke="currentColor" stroke-width="1.7"/><path d="m10 17 4 4 8-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="brand-copy"><strong>Vendor Review Hub</strong><small>ASA ONBOARDING DESK</small></span>
+        </a>
+
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="primary-nav" aria-label="Main navigation">
+          <button class="nav-item active" type="button" data-view="overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12 12 4l8.5 8M5.5 10.5v9h13v-9M9.5 19.5v-6h5v6"/></svg>
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" type="button" data-view="new">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg>
+            <span>New review</span>
+          </button>
+          <button class="nav-item" type="button" data-view="queue">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="15.5" width="16" height="4" rx="1"/></svg>
+            <span>Review queue</span><span class="nav-count" id="nav-count">0</span>
+          </button>
+          <button class="nav-item" type="button" data-view="analytics">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V12m5 7.5V5m5 14.5V9m5 10.5V3.5"/></svg>
+            <span>Analytics</span>
+          </button>
+          <button class="nav-item" type="button" data-view="outputs">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l4 4v12H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M14 4v5h5M8 13h8M8 16h6"/></svg>
+            <span>Decision outputs</span>
+          </button>
+          <button class="nav-item copilot-nav-item" type="button" data-view="copilot" title="Open Analyst Copilot">
+            <span class="copilot-nav-top"><span class="copilot-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.1 5.7L20 11l-5.9 2.2L12 19l-2.1-5.8L4 11l5.9-2.3L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg></span><span class="copilot-nav-badge">FEATURED HELP</span></span>
+            <strong class="copilot-nav-title">Analyst Copilot</strong>
+            <span class="copilot-nav-description">Packet guidance, country ID hints, and next steps.</span>
+            <span class="copilot-nav-footer">OPEN COPILOT <b aria-hidden="true">→</b></span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="workflow-mini">
+            <div class="workflow-mini-top"><span class="mini-pulse"></span><span>WORKFLOW STATUS</span></div>
+            <strong id="workflow-stage">Stage 1 of 7</strong>
+            <div class="mini-progress"><span id="workflow-progress"></span></div>
+            <p id="workflow-note">Submission intake is ready.</p>
+          </div>
+          <div class="user-profile">
+            <div class="avatar">AS</div>
+            <div><strong>Analyst workspace</strong><small>Case study prototype</small></div>
+            <span class="profile-menu" aria-hidden="true">···</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>ASA</span><span class="crumb-separator">/</span><strong>Vendor review hub</strong></div>
+          <div class="topbar-right"><span class="environment"><span></span> <span id="workspace-label">LOCAL WORKSPACE</span></span><button class="top-copilot" type="button" data-view="copilot" aria-label="Open analyst copilot"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 1.7 4.5L16 8l-4.3 1.6L10 14l-1.7-4.4L4 8l4.3-1.5L10 2Z"/><path d="m16 12 .8 2.2L19 15l-2.2.8L16 18l-.8-2.2L13 15l2.2-.8L16 12Z"/></svg><span>Copilot</span></button><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M17.2 11.4A7.5 7.5 0 0 1 8.6 2.8a7.7 7.7 0 1 0 8.6 8.6Z"/></svg><span id="theme-toggle-label">Night mode</span></button><div class="top-avatar" aria-label="Analyst">AS</div></div>
+        </header>
+
+        <section class="page-content">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> VENDOR OPERATIONS <span class="eyebrow-divider">·</span> <span id="page-stage-label">WORKSPACE OVERVIEW</span></div>
+              <h1 id="page-title">Operations overview</h1>
+              <p class="page-subtitle" id="page-subtitle">Track vendor cases, decisions, and the next actions for your team.</p>
+            </div>
+            <div class="heading-action" id="heading-action"><span class="secure-icon" id="workspace-status-icon" aria-hidden="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2"/><path d="M7 8V6a3 3 0 0 1 6 0v2"/></svg></span><span id="workspace-privacy-label">Private to this browser</span></div>
+          </div>
+
+          <section class="view" id="overview-view" aria-labelledby="page-title">
+            <div class="overview-hero panel">
+              <div class="overview-hero-copy">
+                <span class="overview-kicker">ASA VENDOR OPERATIONS</span>
+                <h2>A clear view of every vendor case.</h2>
+                <p>Track incoming packets, resolve review gaps, and keep decisions and evidence together.</p>
+                <div class="overview-actions"><button class="button-primary" type="button" data-view="new">Start a vendor review <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button><button class="button-secondary" type="button" data-view="queue">Open review queue</button></div>
+              </div>
+              <svg class="overview-illustration" viewBox="0 0 220 155" role="img" aria-label="Vendor case dashboard with documents and review status">
+                <rect x="1" y="1" width="218" height="153" rx="24" fill="#eff7f5"/>
+                <rect x="25" y="28" width="123" height="91" rx="10" fill="#fff" stroke="#d9e8e4" stroke-width="2"/>
+                <rect x="37" y="40" width="54" height="7" rx="3.5" fill="#dcebe7"/>
+                <rect x="37" y="55" width="86" height="5" rx="2.5" fill="#e9efed"/>
+                <rect x="37" y="67" width="73" height="5" rx="2.5" fill="#e9efed"/>
+                <rect x="37" y="86" width="29" height="21" rx="5" fill="#e4f4ee"/>
+                <rect x="73" y="86" width="29" height="21" rx="5" fill="#fff2dd"/>
+                <rect x="109" y="86" width="27" height="21" rx="5" fill="#eef1fb"/>
+                <circle cx="163" cy="91" r="37" fill="#d5ece4"/>
+                <circle cx="160" cy="87" r="25" fill="#fff" stroke="#4b9b88" stroke-width="3"/>
+                <path d="m178 106 21 21" stroke="#4b9b88" stroke-width="7" stroke-linecap="round"/>
+                <path d="m151 87 7 7 13-15" stroke="#388a76" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="overview-copilot-strip">
+              <span class="overview-sparkle" aria-hidden="true">✦</span>
+              <p><strong>Analyst Copilot</strong> gives packet suggestions, country ID guidance, and a clear view of what needs attention next.</p>
+              <button type="button" data-view="copilot">View copilot summary <span aria-hidden="true">→</span></button>
+            </div>
+            <section class="panel demo-data-panel" id="demo-data-panel" aria-labelledby="demo-data-title">
+              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">LOCAL SYNTHETIC DATA</span><h2 id="demo-data-title">Presentation portfolio</h2><p id="demo-data-status" aria-live="polite">Load 50 normal sample cases, then add four edge scenarios as a separate demo step.</p></div></div>
+              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load 50 normal cases</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add 4 edge cases</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Clear demo data</button></div>
+              <p class="demo-data-note">All sample vendors and document evidence are fictional. Your manually entered cases stay in the dashboard when sample data is cleared.</p>
+            </section>
+            <div class="overview-metrics">
+              <article class="overview-metric"><span>ALL CASES</span><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
+              <article class="overview-metric"><span>OPEN WORK</span><strong id="overview-active">0</strong><small>Cases still needing an action</small></article>
+              <article class="overview-metric"><span>APPROVED</span><strong id="overview-approved">0</strong><small>Decision recorded</small></article>
+              <article class="overview-metric"><span>NEEDS REVIEW</span><strong id="overview-review">0</strong><small>Pending or unresolved checks</small></article>
+            </div>
+            <div class="overview-columns">
+              <section class="panel overview-list-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">WORK NEXT</span><h2>Priority actions</h2><p>Cases that have not reached a final record.</p></div><span class="section-count" id="overview-priority-count">0</span></div>
+                <div class="overview-list" id="overview-priorities"></div>
+              </section>
+              <section class="panel overview-list-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">LATEST ACTIVITY</span><h2>Recent cases</h2><p>Recently updated vendor reviews.</p></div><button class="text-action" type="button" data-view="queue">All cases →</button></div>
+                <div class="overview-list" id="overview-recent"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view hidden" id="new-view" aria-labelledby="page-title">
+            <div class="hosted-demo-warning hidden" id="hosted-demo-warning" role="status"><strong>Public presentation site</strong><span>Use fictional vendor details and sample files only. Case records stay in this browser; uploaded files are sent to this demo server for text reading and are not saved by the app.</span></div>
+            <div class="intake-layout">
+              <form class="panel intake-panel" id="submission-form">
+                <div class="panel-heading">
+                  <div class="panel-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20a8 8 0 0 1 16 0"/></svg></div>
+                  <div><h2>Details from the vendor packet</h2><p>Record the information your team received for review.</p></div>
+                  <span class="required-note"><i></i> Required fields</span>
+                </div>
+
+                <div class="form-grid">
+                  <label class="field field-wide">
+                    <span>Legal business name <b>*</b></span>
+                    <input name="legalName" type="text" placeholder="e.g. Northstar Office Supplies Ltd." autocomplete="organization" required maxlength="120" />
+                    <small>Use the name shown on the registration document.</small>
+                  </label>
+
+                  <label class="field">
+                    <span>Country or region <b>*</b></span>
+                    <span class="select-wrap"><select name="country" required><option value="" disabled selected>Select country</option><option>India</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Singapore</option><option>Australia</option><option>Other</option></select><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span>
+                  </label>
+
+                  <label class="field">
+                    <span>Tax or registration ID <b>*</b></span>
+                    <input name="taxId" type="text" placeholder="Enter the vendor's ID" autocomplete="off" required maxlength="80" />
+                    <small>Country-specific checks happen in a later stage.</small>
+                  </label>
+
+                  <label class="field">
+                    <span>Primary contact email <b>*</b></span>
+                    <input name="email" type="email" placeholder="name@company.com" autocomplete="email" required maxlength="160" />
+                  </label>
+
+                  <label class="field">
+                    <span>Bank account holder <b>*</b></span>
+                    <input name="accountHolder" type="text" placeholder="Name shown on bank proof" autocomplete="off" required maxlength="120" />
+                    <small>Do not enter an account number in this prototype.</small>
+                  </label>
+                </div>
+
+                <div class="section-divider"><span>SUPPORTING DOCUMENTS</span><span class="optional-pill">Optional for intake</span></div>
+                <div class="upload-grid">
+                  <label class="upload-card" for="registration-file">
+                    <input class="file-input" id="registration-file" name="registration" type="file" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.csv" />
+                    <span class="upload-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.75h7l4 4v12.5H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z"/><path d="M14 4v4h4M8.5 14h7M8.5 17h7"/></svg></span>
+                    <span class="upload-copy"><strong>Registration document</strong><small class="file-name">PDF, image, DOCX, TXT, or CSV</small></span>
+                    <span class="upload-action" aria-hidden="true">+</span>
+                  </label>
+                  <label class="upload-card" for="tax-file">
+                    <input class="file-input" id="tax-file" name="taxDocument" type="file" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.csv" />
+                    <span class="upload-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.75h7l4 4v12.5H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z"/><path d="M14 4v4h4M8.5 14h7M8.5 17h7"/></svg></span>
+                    <span class="upload-copy"><strong>Tax document</strong><small class="file-name">PDF, image, DOCX, TXT, or CSV</small></span>
+                    <span class="upload-action" aria-hidden="true">+</span>
+                  </label>
+                  <label class="upload-card" for="bank-file">
+                    <input class="file-input" id="bank-file" name="bankProof" type="file" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.csv" />
+                    <span class="upload-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.75h7l4 4v12.5H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z"/><path d="M14 4v4h4M8.5 14h7M8.5 17h7"/></svg></span>
+                    <span class="upload-copy"><strong>Bank proof</strong><small class="file-name">PDF, image, DOCX, TXT, or CSV</small></span>
+                    <span class="upload-action" aria-hidden="true">+</span>
+                  </label>
+                </div>
+                <div class="upload-footnote"><span class="info-mark">i</span> Files are saved in this browser for the prototype. Maximum 10 MB per file.</div>
+
+                <div class="form-footer">
+                  <p><span class="lock-small"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span> Vendor data stays on this device.</p>
+                  <button class="button-primary" type="submit"><span>Create review case</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4l6 6-6 6"/></svg></button>
+                </div>
+              </form>
+
+              <aside class="side-column">
+                <section class="panel draft-assist-card" aria-labelledby="draft-assist-title">
+                  <div class="draft-assist-heading">
+                    <span class="draft-assist-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m10 2 1.7 4.5L16 8l-4.3 1.6L10 14l-1.7-4.4L4 8l4.3-1.5L10 2Z"/></svg></span>
+                    <div><span class="draft-assist-kicker">ANALYST HELP</span><h3 id="draft-assist-title">Packet assist</h3></div>
+                    <button class="text-action" type="button" data-view="copilot">Summary →</button>
+                  </div>
+                  <p class="draft-assist-copy">Read vendor files and review source-linked field suggestions before opening the case.</p>
+                  <div class="analyst-case-counts" aria-live="polite">
+                    <div><span>DETAILS ENTERED</span><strong id="copilot-field-count">0 / 5</strong></div>
+                    <div><span>PACKET FILES</span><strong id="copilot-document-count">0 / 3</strong></div>
+                  </div>
+                  <div class="analyst-guidance" id="copilot-guidance">Next step: enter the vendor details, then review the packet before creating the case.</div>
+                  <button class="button-primary analyst-read-button" id="copilot-read-button" type="button" disabled>Review packet and suggest fields</button>
+                  <div class="analyst-suggestions" id="copilot-doc-results"></div>
+                  <div class="analyst-reply" id="copilot-reply" role="status" aria-live="polite">Suggestions are based on readable text. Your team confirms what to use.</div>
+                  <p class="draft-assist-footnote">Local, rule-based help · no paid AI service or API key.</p>
+                </section>
+
+                <section class="panel stage-panel">
+                  <div class="side-panel-title"><span class="stage-number">01</span><div><h3>Intake stage</h3><p>Start a traceable vendor review.</p></div></div>
+                  <div class="stage-rail">
+                    <div class="rail-step current"><span class="rail-node"><i></i></span><div><strong>Receive submission</strong><small>Vendor details and documents</small></div><span class="step-state">NOW</span></div>
+                    <div class="rail-step upcoming"><span class="rail-node"></span><div><strong>Read information</strong><small>Extract fields from documents</small></div></div>
+                    <div class="rail-step upcoming"><span class="rail-node"></span><div><strong>Validate and compare</strong><small>Check formats and consistency</small></div></div>
+                    <div class="rail-step upcoming"><span class="rail-node"></span><div><strong>Review decision</strong><small>Explain the outcome</small></div></div>
+                  </div>
+                  <div class="stage-note"><span class="sparkle">✦</span><p>Each submission gets a run ID and timestamp so the review can be traced later.</p></div>
+                </section>
+
+                <section class="tip-card">
+                  <div class="tip-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a6 6 0 0 0-3.8 10.64c.7.57 1.05 1.14 1.12 1.86h5.36c.07-.72.42-1.29 1.12-1.86A6 6 0 0 0 10 2.5Z"/><path d="M7.7 17h4.6M8.2 15h3.6"/></svg></div>
+                  <div><strong>Good to know</strong><p>Missing documents can still be recorded. Later stages will flag what’s needed and prepare a follow-up.</p></div>
+                </section>
+
+                <button class="recent-card" type="button" data-view="queue">
+                  <span class="recent-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h8"/></svg></span>
+                  <span class="recent-copy"><strong>Submission queue</strong><small><span id="recent-count">0</span> submissions recorded</small></span>
+                  <svg class="recent-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>
+                </button>
+              </aside>
+            </div>
+          </section>
+
+          <section class="view hidden" id="queue-view" aria-labelledby="queue-title">
+            <div class="queue-summary">
+              <article class="metric-card"><div class="metric-label">TOTAL SUBMISSIONS <span class="metric-icon blue"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.5h6l3 3v10H6a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 6 3.5Z"/><path d="M12 4v3h3M7.5 11h5M7.5 14h5"/></svg></span></div><strong id="metric-total">0</strong><small>All intake runs</small></article>
+              <article class="metric-card"><div class="metric-label">RECEIVED <span class="metric-icon amber"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="M10 6v4l2.5 1.5"/></svg></span></div><strong id="metric-received">0</strong><small>Ready for next stage</small></article>
+              <article class="metric-card"><div class="metric-label">DOCUMENTS ATTACHED <span class="metric-icon green"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 10 2 2 4-4M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15Z"/></svg></span></div><strong id="metric-documents">0</strong><small>Across all submissions</small></article>
+            </div>
+
+            <div class="panel queue-panel">
+              <div class="queue-heading"><div><h2 id="queue-title">Submission queue</h2><p>Vendor intake runs recorded in this browser.</p></div><button class="button-primary compact" type="button" data-view="new"><span>New submission</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button></div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>VENDOR</th><th>COUNTRY</th><th>RUN ID</th><th>CREATED</th><th>DOCUMENTS</th><th>STATUS</th><th></th></tr></thead>
+                  <tbody id="submission-rows"></tbody>
+                </table>
+                <div class="empty-state hidden" id="empty-state"><span class="empty-illustration"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h13l8 8v23H15a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3Z"/><path d="M28 8v8h8M19 25h13M19 31h9"/><circle cx="35" cy="35" r="8"/><path d="M35 31v8m-4-4h8"/></svg></span><h3>No submissions yet</h3><p>Create your first vendor submission to start the intake workflow.</p><button class="button-primary compact" type="button" data-view="new"><span>Start first submission</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button></div>
+              </div>
+              <div class="table-foot"><span><span class="table-dot"></span> Local browser records</span><span id="table-count">Showing 0 submissions</span></div>
+            </div>
+            <div class="queue-note"><span class="info-mark">i</span> This prototype records intake details and attachments locally. Automated document checks are added in later stages.</div>
+          </section>
+
+          <section class="view hidden" id="analytics-view" aria-labelledby="analytics-title">
+            <div class="analytics-kpis">
+              <article class="overview-metric"><span>TOTAL CASES</span><strong id="analytics-total">0</strong><small>All recorded intake runs</small></article>
+              <article class="overview-metric"><span>ACTIVE CASES</span><strong id="analytics-active">0</strong><small>Not yet finalized</small></article>
+              <article class="overview-metric"><span>APPROVAL RATE</span><strong id="analytics-approval-rate">0%</strong><small>Of recorded decisions</small></article>
+              <article class="overview-metric"><span>DOC COVERAGE</span><strong id="analytics-doc-coverage">0%</strong><small>Cases with all three document types</small></article>
+            </div>
+            <section class="panel analytics-insight-panel" aria-labelledby="analytics-insight-heading" aria-live="polite">
+              <div class="analytics-insight-heading"><div><span class="section-eyebrow">PORTFOLIO TAKEAWAY</span><h2 id="analytics-insight-heading">What the numbers say</h2><p id="analytics-insight-summary">Add cases to see a summary of outcomes and open work.</p></div><span class="insight-status" id="analytics-insight-status">NO CASES</span></div>
+              <div class="analytics-insight-grid">
+                <article><span>DECISION MIX</span><strong id="analytics-insight-decisions">0 recorded</strong><small id="analytics-insight-decision-note">No decisions recorded yet</small></article>
+                <article><span>TOP REVIEW SIGNAL</span><strong id="analytics-insight-top-signal">None</strong><small id="analytics-insight-signal-note">No open review flags</small></article>
+                <article><span>WORK CLOSED</span><strong id="analytics-insight-closed">0 / 0</strong><small id="analytics-insight-closed-note">Finalized cases</small></article>
+                <article><span>DOCUMENT COVERAGE</span><strong id="analytics-insight-docs">0%</strong><small id="analytics-insight-doc-note">Cases with all three types</small></article>
+              </div>
+            </section>
+            <div class="analytics-demo-facts" aria-label="Presentation dataset facts">
+              <article><span>NORMAL SAMPLE CASES</span><strong id="analytics-normal-count">0</strong><small>Standard complete packets</small></article>
+              <article><span>EDGE CASES</span><strong id="analytics-edge-count">0</strong><small>Four review scenarios</small></article>
+              <article><span>SAMPLE CASES APPROVED</span><strong id="analytics-normal-approved">0</strong><small>Configured checks all passed</small></article>
+              <article><span>OPEN REVIEW SIGNALS</span><strong id="analytics-review-signal-count">0</strong><small>Across saved cases</small></article>
+            </div>
+            <div class="analytics-columns">
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">WORKFLOW FLOW</span><h2 id="analytics-title">Cases by stage</h2><p>Count of cases that reached each stage.</p></div></div>
+                <div class="analytics-bars" id="analytics-stage-bars"></div>
+              </section>
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">DECISION OUTPUT</span><h2>Recorded outcomes</h2><p>Approved, Pending, and reviewer-overridden Rejected cases.</p></div></div>
+                <div class="analytics-bars" id="analytics-outcome-bars"></div>
+              </section>
+            </div>
+            <div class="analytics-columns analytics-detail-columns">
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">INTAKE TREND</span><h2>Cases received by month</h2><p>Counts use the case creation date in this browser.</p></div></div>
+                <div class="analytics-bars" id="analytics-month-bars"></div>
+              </section>
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">PORTFOLIO MIX</span><h2>Cases by country</h2><p>Recorded vendor country or region.</p></div></div>
+                <div class="analytics-bars" id="analytics-country-bars"></div>
+              </section>
+            </div>
+            <section class="panel analytics-health analytics-edge-panel">
+              <div class="section-heading"><div><span class="section-eyebrow">EDGE-CASE COVERAGE</span><h2>Presentation scenarios</h2><p>Load these after the normal portfolio to show how the workflow flags review cases.</p></div></div>
+              <div class="analytics-bars" id="analytics-edge-bars"></div>
+            </section>
+            <section class="panel analytics-health">
+              <div class="section-heading"><div><span class="section-eyebrow">OPERATIONS SNAPSHOT</span><h2>Review workload</h2><p>Signals from the locally recorded case history.</p></div></div>
+              <div class="health-grid" id="analytics-health-grid"></div>
+            </section>
+            <p class="queue-note"><span class="info-mark">i</span> Analytics use only records saved in this browser. A deployed shared dashboard needs a shared database.</p>
+          </section>
+
+          <section class="view hidden" id="outputs-view" aria-labelledby="outputs-title">
+            <div class="output-kpis">
+              <article class="overview-metric"><span>DECIDED CASES</span><strong id="outputs-total">0</strong><small>Decision recorded</small></article>
+              <article class="overview-metric"><span>APPROVED</span><strong id="outputs-approved">0</strong><small>All configured checks passed</small></article>
+              <article class="overview-metric"><span>PENDING</span><strong id="outputs-pending">0</strong><small>Needs more information or review</small></article>
+              <article class="overview-metric"><span>REJECTED</span><strong id="outputs-rejected">0</strong><small>Reviewer override with reason</small></article>
+            </div>
+            <div class="output-insight-grid">
+              <section class="panel output-profile-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">OUTCOME PROFILE</span><h2>Decision mix</h2><p>Counts from all saved decisions in this browser.</p></div></div>
+                <div class="analytics-bars" id="outputs-decision-bars"></div>
+              </section>
+              <section class="panel output-profile-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">DECISION FACTS</span><h2>How outcomes were recorded</h2><p>Rule-based results and reviewer activity.</p></div></div>
+                <div class="output-facts-grid"><article><span>RULE-BASED</span><strong id="outputs-rule-based">0</strong></article><article><span>REVIEWER OVERRIDES</span><strong id="outputs-overrides">0</strong></article><article><span>FOLLOW-UP DRAFTS</span><strong id="outputs-drafts">0</strong></article></div>
+              </section>
+            </div>
+            <section class="panel output-panel">
+              <div class="section-heading output-heading"><div><span class="section-eyebrow">DECISION REGISTER</span><h2 id="outputs-title">Decision outputs</h2><p>Outcome, reason, and follow-up state for each reviewed case.</p></div><button class="button-secondary" type="button" data-view="queue">Open review queue</button></div>
+              <div class="table-wrap">
+                <table class="output-table">
+                  <thead><tr><th>VENDOR</th><th>OUTCOME</th><th>REASON</th><th>FOLLOW-UP</th><th>DECIDED</th><th></th></tr></thead>
+                  <tbody id="output-rows"></tbody>
+                </table>
+                <div class="empty-state hidden" id="outputs-empty"><span class="empty-illustration"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h13l8 8v23H15a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3Z"/><path d="M28 8v8h8M19 25h13M19 31h9"/></svg></span><h3>No decision outputs yet</h3><p>Complete the review stages to see decisions and explanations here.</p><button class="button-primary compact" type="button" data-view="queue">Open review queue</button></div>
+              </div>
+              <div class="table-foot"><span>Decision register</span><span id="outputs-count">Showing 0 decisions</span></div>
+            </section>
+          </section>
+
+          <section class="view hidden" id="copilot-view" aria-labelledby="copilot-page-title">
+            <div class="copilot-page-hero panel">
+              <div class="copilot-page-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.1 5.7L20 11l-5.9 2.2L12 19l-2.1-5.8L4 11l5.9-2.3L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg></div>
+              <div class="copilot-page-copy"><span class="section-eyebrow">FREE · LOCAL · SOURCE-LINKED</span><h2 id="copilot-page-title">A practical copilot for vendor review.</h2><p>Read packet evidence, explain country ID formats, highlight open work, and suggest the next reviewer action.</p><div class="copilot-hero-actions"><button class="button-primary compact" type="button" data-view="new">Start a vendor review <span aria-hidden="true">→</span></button><a href="#copilot-knowledge">Explore the reference library ↓</a></div></div>
+              <div class="copilot-hero-art" aria-hidden="true"><svg viewBox="0 0 180 132"><defs><linearGradient id="copilotGlow" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#d9f1e8"/><stop offset="1" stop-color="#e8e4fa"/></linearGradient></defs><circle cx="92" cy="65" r="54" fill="url(#copilotGlow)"/><rect x="42" y="35" width="92" height="66" rx="12" fill="#fff" stroke="#dce8e5"/><path d="M58 54h46M58 65h58M58 76h34" stroke="#b4c8c2" stroke-width="5" stroke-linecap="round"/><circle cx="123" cy="88" r="17" fill="#258272"/><path d="m123 77 2.8 7.2L133 87l-7.2 2.8L123 97l-2.8-7.2L113 87l7.2-2.8L123 77Z" fill="#fff"/><path d="m145 30 1.4 3.7 3.6 1.3-3.6 1.4-1.4 3.6-1.3-3.6-3.7-1.4 3.7-1.3 1.3-3.7Z" fill="#887fc0"/><circle cx="38" cy="87" r="4" fill="#81b9a8"/></svg></div>
+            </div>
+            <div class="copilot-capability-grid" aria-label="What the analyst copilot helps with">
+              <article><span class="capability-icon">01</span><div><strong>Read the packet</strong><p>Suggest values with the file and text they came from.</p></div></article>
+              <article><span class="capability-icon">02</span><div><strong>Spot review signals</strong><p>Bring missing items and document mismatches forward.</p></div></article>
+              <article><span class="capability-icon">03</span><div><strong>Guide the next step</strong><p>Explain pending work and prepare a follow-up draft.</p></div></article>
+              <article><span class="capability-icon">04</span><div><strong>Check country references</strong><p>Show basic ID hints alongside official source links.</p></div></article>
+            </div>
+            <div class="copilot-summary-kpis">
+              <article class="overview-metric"><span>CASES IN SCOPE</span><strong id="copilot-total">0</strong><small>Saved in this browser</small></article>
+              <article class="overview-metric"><span>NEED ACTION</span><strong id="copilot-active">0</strong><small>Not yet finalized</small></article>
+              <article class="overview-metric"><span>PENDING</span><strong id="copilot-pending">0</strong><small>Follow-up or review needed</small></article>
+              <article class="overview-metric"><span>READY TO CLOSE</span><strong id="copilot-ready">0</strong><small>Decision recorded; history open</small></article>
+            </div>
+            <section class="panel copilot-knowledge-panel" id="copilot-knowledge" aria-labelledby="knowledge-title">
+              <div class="knowledge-heading"><div><span class="section-eyebrow">CURATED LOCAL DATASET</span><h2 id="knowledge-title">Country reference library</h2><p>Choose a country to see the configured ID hint and its official reference pages.</p></div><label class="knowledge-country-label" for="copilot-country-picker">Country<select id="copilot-country-picker"><option value="">Choose country</option><option>India</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Singapore</option><option>Australia</option><option>Other</option></select></label></div>
+              <div id="copilot-knowledge-detail" class="knowledge-detail"><div class="knowledge-empty"><strong>Country guidance will appear here.</strong><span>Pick the vendor's country to see the local reference and reviewer cue.</span></div></div>
+              <div class="knowledge-disclaimer"><span aria-hidden="true">ⓘ</span><p>These are syntax and workflow hints, not registry lookups or legal advice. A match does not confirm identity, registration status, or tax standing. The reviewer remains responsible for the decision.</p><span id="knowledge-updated"></span></div>
+            </section>
+            <div class="copilot-page-columns">
+              <section class="panel copilot-summary-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">PORTFOLIO BRIEF</span><h2>What needs attention</h2></div><button class="text-action" type="button" id="refresh-copilot">Refresh ↻</button></div>
+                <div class="copilot-brief" id="workspace-summary">Create or open a case to generate a local work summary.</div>
+                <div class="copilot-issue-list" id="workspace-issues"></div>
+              </section>
+              <section class="panel copilot-priority-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">SUGGESTED NEXT STEPS</span><h2>Priority cases</h2></div></div>
+                <div class="copilot-priority-list" id="workspace-priorities"></div>
+              </section>
+            </div>
+            <section class="panel copilot-chat-panel">
+              <div class="section-heading"><div><span class="section-eyebrow">ASK ABOUT THE QUEUE</span><h2>Analyst help</h2><p>Get a concise summary based on saved case statuses and review checks.</p></div></div>
+              <div class="workspace-prompts">
+                <button type="button" data-workspace-prompt="summarize">Summarize my queue</button>
+                <button type="button" data-workspace-prompt="attention">What needs attention?</button>
+                <button type="button" data-workspace-prompt="pending">Show Pending follow-ups</button>
+                <button type="button" data-workspace-prompt="documents">What should I check in the packet?</button>
+                <button type="button" data-workspace-prompt="tax">Explain this country's ID hint</button>
+              </div>
+              <div class="workspace-copilot-reply" id="workspace-copilot-reply" role="status" aria-live="polite">Choose a prompt or ask about your case queue.</div>
+              <form class="workspace-question" id="workspace-question-form">
+                <label class="visually-hidden" for="workspace-question">Ask about your vendor cases</label>
+                <input id="workspace-question" type="text" maxlength="240" placeholder="Ask about priorities, outcomes, or open cases" autocomplete="off" />
+                <button type="submit" aria-label="Ask the analyst copilot"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13m-5-5 5 5-5 5"/></svg></button>
+              </form>
+              <p class="copilot-limit-note">This prototype builds summaries from local rules and saved workflow results. It does not use a generative AI model or make vendor decisions.</p>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="detail-dialog" id="run-dialog">
+      <div class="dialog-head"><div><span class="dialog-eyebrow">INTAKE RUN</span><h2 id="dialog-title">Submission details</h2></div><button class="icon-button" id="dialog-close" type="button" aria-label="Close details">×</button></div>
+      <div class="dialog-run-id" id="dialog-run-id"></div>
+      <div class="demo-case-banner hidden" id="demo-case-banner" role="status"></div>
+      <section class="report-insight-panel" aria-labelledby="report-insight-heading">
+        <div class="report-insight-heading"><div><span class="section-eyebrow">CASE SNAPSHOT</span><h3 id="report-insight-heading">Report insights</h3></div><span class="report-insight-status" id="report-insight-status">In progress</span></div>
+        <div class="report-insight-bars" id="report-insight-bars"></div>
+        <p class="report-insight-summary" id="report-insight-summary">Run the review checks to see this case's key findings.</p>
+      </section>
+      <div class="dialog-progress" id="dialog-progress"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <p class="dialog-stage">Stage 1 complete · Ready for information extraction</p>
+      <dl class="detail-list" id="dialog-details"></dl>
+      <div class="dialog-docs"><strong>Attachments</strong><div id="dialog-doc-list"></div></div>
+      <section class="extraction-panel" id="extraction-panel">
+        <div class="extraction-heading">
+          <div><span class="extraction-kicker">STAGE 02</span><h3>Information extraction</h3><p id="extraction-status">Documents have not been read yet.</p></div>
+          <button class="button-primary compact" id="extract-button" type="button">Read documents <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button>
+        </div>
+        <div id="extraction-results" class="extraction-results"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> Local text extraction looks for labelled fields and shows the source page and line. Scanned images need OCR, which is not included yet.</p>
+      </section>
+      <section class="validation-panel" id="validation-panel">
+        <div class="validation-heading">
+          <div><span class="extraction-kicker">STAGE 03</span><h3>Completeness and format checks</h3><p id="validation-status">Read the documents first to continue.</p></div>
+          <button class="button-primary compact" id="validate-button" type="button" disabled>Run checks <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-8"/></svg></button>
+        </div>
+        <div id="validation-results" class="validation-results"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> Format checks are syntax hints only. They do not confirm registration, tax status, or identity with a government service.</p>
+      </section>
+      <section class="comparison-panel" id="comparison-panel">
+        <div class="comparison-heading">
+          <div><span class="extraction-kicker">STAGE 04</span><h3>Compare details and check duplicates</h3><p id="comparison-status">Complete Stage 3 checks first.</p></div>
+          <button class="button-primary compact" id="compare-button" type="button" disabled>Compare details <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h7"/></svg></button>
+        </div>
+        <div id="comparison-results" class="comparison-results"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> A possible duplicate or mismatch is a review signal. This stage does not reject a vendor or change the source documents.</p>
+      </section>
+      <section class="decision-panel" id="decision-panel">
+        <div class="decision-heading">
+          <div><span class="extraction-kicker">STAGE 05</span><h3>Make onboarding decision</h3><p id="decision-status">Complete Stage 4 comparison first.</p></div>
+          <span class="decision-shield"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 16 5v4.5c0 3.6-2.3 6.4-6 8-3.7-1.6-6-4.4-6-8V5l6-2.5Z"/><path d="m7 9.8 2 2 4-4"/></svg></span>
+        </div>
+        <div class="decision-controls">
+          <label class="decision-field"><span>Reviewer override <small>Optional</small></span><select id="decision-override"><option value="">Use rule-based result</option><option value="Approved">Override to Approved</option><option value="Pending">Override to Pending</option><option value="Rejected">Override to Rejected</option></select></label>
+          <label class="decision-field"><span>Override reason <small>Required for an override</small></span><textarea id="decision-reason" rows="2" maxlength="500" placeholder="Explain the reviewer decision"></textarea></label>
+        </div>
+        <div class="decision-action-row"><p id="decision-hint">All configured checks must pass for automatic approval. Any unresolved check results in Pending.</p><button class="button-primary compact" id="decision-button" type="button" disabled>Make decision <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-8"/></svg></button></div>
+        <div id="decision-results" class="decision-results"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> This prototype does not verify vendor identity with external registries. A rejection is always a reviewer override with a recorded reason.</p>
+      </section>
+      <section class="followup-panel" id="followup-panel">
+        <div class="followup-heading">
+          <div><span class="extraction-kicker">STAGE 06</span><h3>Prepare vendor follow-up</h3><p id="followup-status">Create a decision first.</p></div>
+          <button class="button-primary compact" id="followup-button" type="button" disabled>Prepare follow-up <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12v9H4zM4 7l6 4 6-4"/></svg></button>
+        </div>
+        <div id="followup-results" class="followup-results"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> Draft only. Review and copy the message into your normal vendor communication channel.</p>
+      </section>
+      <section class="audit-panel" id="audit-panel">
+        <div class="audit-heading">
+          <div><span class="extraction-kicker">STAGE 07</span><h3>Final result and run history</h3><p id="audit-status">Prepare the follow-up stage first.</p></div>
+          <button class="button-primary compact" id="finalize-button" type="button" disabled>Complete run <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-8"/></svg></button>
+        </div>
+        <div id="audit-results" class="audit-results"></div>
+      </section>
+      <div class="dialog-footer"><span class="status-badge received" id="dialog-status"><i></i> Received</span><span id="dialog-created"></span></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
+    <script src="knowledge-base.js?v=1"></script>
+    <script src="demo-dataset.js?v=2"></script>
+    <script src="app.js?v=10"></script>
+  </body>
+</html>
