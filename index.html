@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <div class="app-shell">
@@ -112,9 +112,9 @@
               <button type="button" data-view="copilot">View copilot summary <span aria-hidden="true">→</span></button>
             </div>
             <section class="panel demo-data-panel" id="demo-data-panel" aria-labelledby="demo-data-title">
-              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">LOCAL SYNTHETIC DATA</span><h2 id="demo-data-title">Presentation portfolio</h2><p id="demo-data-status" aria-live="polite">Load 50 normal sample cases, then add four edge scenarios as a separate demo step.</p></div></div>
-              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load 50 normal cases</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add 4 edge cases</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Clear demo data</button></div>
-              <p class="demo-data-note">All sample vendors and document evidence are fictional. Your manually entered cases stay in the dashboard when sample data is cleared.</p>
+              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">LOCAL SYNTHETIC DATA</span><h2 id="demo-data-title">Presentation portfolio</h2><p id="demo-data-status" aria-live="polite">Load a 100-case baseline with an uneven country mix, then add pending and reviewer-rejected examples.</p></div></div>
+              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load 100 baseline cases</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add 4 pending cases</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add 8 rejected examples</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Clear demo data</button></div>
+              <p class="demo-data-note">All sample vendors and evidence are fictional. Rejections are reasoned reviewer overrides, never automatic rules. Clearing samples preserves manually entered cases.</p>
             </section>
             <div class="overview-metrics">
               <article class="overview-metric"><span>ALL CASES</span><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
@@ -285,9 +285,9 @@
               </div>
             </section>
             <div class="analytics-demo-facts" aria-label="Presentation dataset facts">
-              <article><span>NORMAL SAMPLE CASES</span><strong id="analytics-normal-count">0</strong><small>Standard complete packets</small></article>
-              <article><span>EDGE CASES</span><strong id="analytics-edge-count">0</strong><small>Four review scenarios</small></article>
-              <article><span>SAMPLE CASES APPROVED</span><strong id="analytics-normal-approved">0</strong><small>Configured checks all passed</small></article>
+              <article><span>BASELINE CASES</span><strong id="analytics-normal-count">0</strong><small>Uneven country mix</small></article>
+              <article><span>PENDING EXAMPLES</span><strong id="analytics-edge-count">0</strong><small>Need review or follow-up</small></article>
+              <article><span>REVIEWER REJECTIONS</span><strong id="analytics-rejected-count">0</strong><small>Manual decisions with reasons</small></article>
               <article><span>OPEN REVIEW SIGNALS</span><strong id="analytics-review-signal-count">0</strong><small>Across saved cases</small></article>
             </div>
             <div class="analytics-columns">
@@ -296,22 +296,22 @@
                 <div class="analytics-bars" id="analytics-stage-bars"></div>
               </section>
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">DECISION OUTPUT</span><h2>Recorded outcomes</h2><p>Approved, Pending, and reviewer-overridden Rejected cases.</p></div></div>
-                <div class="analytics-bars" id="analytics-outcome-bars"></div>
+                <div class="section-heading"><div><span class="section-eyebrow">DECISION OUTPUT</span><h2>Portfolio disposition</h2><p>Case mix, including unresolved and reviewer-rejected outcomes.</p></div></div>
+                <div id="analytics-outcome-chart" class="outcome-chart"></div>
               </section>
             </div>
             <div class="analytics-columns analytics-detail-columns">
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">INTAKE TREND</span><h2>Cases received by month</h2><p>Counts use the case creation date in this browser.</p></div></div>
-                <div class="analytics-bars" id="analytics-month-bars"></div>
+                <div class="section-heading"><div><span class="section-eyebrow">INTAKE TREND</span><h2>Cases received by month</h2><p id="analytics-month-note">Monthly volume across the latest six months.</p></div></div>
+                <div id="analytics-month-chart" class="trend-chart"></div>
               </section>
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">PORTFOLIO MIX</span><h2>Cases by country</h2><p>Recorded vendor country or region.</p></div></div>
-                <div class="analytics-bars" id="analytics-country-bars"></div>
+                <div class="section-heading"><div><span class="section-eyebrow">PORTFOLIO MIX</span><h2>Cases by country</h2><p id="analytics-country-note">Regional mix across the saved portfolio.</p></div></div>
+                <div id="analytics-country-chart" class="country-chart"></div>
               </section>
             </div>
             <section class="panel analytics-health analytics-edge-panel">
-              <div class="section-heading"><div><span class="section-eyebrow">EDGE-CASE COVERAGE</span><h2>Presentation scenarios</h2><p>Load these after the normal portfolio to show how the workflow flags review cases.</p></div></div>
+              <div class="section-heading"><div><span class="section-eyebrow">REVIEW EXCEPTIONS</span><h2>Pending and rejection scenarios</h2><p>Pending cases stay open; rejected examples record a human override and its reason.</p></div></div>
               <div class="analytics-bars" id="analytics-edge-bars"></div>
             </section>
             <section class="panel analytics-health">
@@ -477,7 +477,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=1"></script>
-    <script src="demo-dataset.js?v=2"></script>
-    <script src="app.js?v=10"></script>
+    <script src="demo-dataset.js?v=3"></script>
+    <script src="app.js?v=11"></script>
   </body>
 </html>

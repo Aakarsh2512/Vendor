@@ -5,10 +5,12 @@
   const MAX_FILE_BYTES = 10 * 1024 * 1024;
   const THEME_STORAGE_KEY = "asa-vendor-intake-theme-v1";
   const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
-  const DEMO_BATCH_NORMAL = "asa-review-hub-normal-v1";
-  const DEMO_BATCH_EDGE = "asa-review-hub-edge-v1";
+  const DEMO_BATCH_NORMAL = "asa-review-hub-normal-v2";
+  const DEMO_BATCH_EDGE = "asa-review-hub-edge-v2";
+  const DEMO_BATCH_REJECTED = "asa-review-hub-rejected-v1";
   const DEMO_BOOTSTRAP_KEY = "asa-review-hub-demo-bootstrap-v1";
-  const DEMO_DATASET = window.ASA_DEMO_DATASET || { normalCases: [], edgeCases: [] };
+  const DEMO_DATASET_VERSION_KEY = "asa-review-hub-demo-dataset-version";
+  const DEMO_DATASET = window.ASA_DEMO_DATASET || { normalCases: [], edgeCases: [], rejectedCases: [], countryTargets: [] };
   const IS_LOCAL_DEMO = window.location.protocol === "file:" || ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
   const IS_PRESENTATION_MODE = IS_LOCAL_DEMO || new URLSearchParams(window.location.search).get("demo") === "1";
   const FILE_FIELDS = [
@@ -141,16 +143,27 @@
   }
 
   function makeSyntheticRun(template, index, batchId, kind) {
-    const id = kind === "normal" ? "SAMPLE-N-" + String(index + 1).padStart(3, "0") : "SAMPLE-E-" + String(index + 1).padStart(2, "0");
-    const daysAgo = kind === "normal" ? (DEMO_DATASET.normalCases.length - index) * 3 : DEMO_DATASET.edgeCases.length - index - 1;
-    const created = new Date();
-    created.setDate(created.getDate() - daysAgo);
+    const idPrefix = kind === "normal" ? "N" : kind === "rejected" ? "R" : "E";
+    const idWidth = kind === "normal" ? 3 : 2;
+    const id = "SAMPLE-" + idPrefix + "-" + String(index + 1).padStart(idWidth, "0");
+    const daysAgo = kind === "edge" ? DEMO_DATASET.edgeCases.length - index - 1 : 0;
+    const now = new Date();
+    let created;
+    if (Number.isInteger(template.monthOffset)) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - template.monthOffset, 1);
+      const monthDays = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+      const maxDay = template.monthOffset === 0 ? Math.max(1, now.getDate()) : monthDays;
+      created = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 + ((index * 7 + 2) % maxDay));
+    } else {
+      created = new Date(now);
+      created.setDate(created.getDate() - daysAgo);
+    }
     created.setHours(9 + (index % 7), (index * 11) % 60, 0, 0);
     const createdAt = created.toISOString();
     const missing = new Set(template.missingDocuments || []);
     const allDocumentSpecs = [
       { kind: "Registration document", suffix: "registration", fields: [
-        makeSyntheticField("legalName", "Legal business name", template.legalName),
+        makeSyntheticField("legalName", "Legal business name", template.registrationName || template.legalName),
         makeSyntheticField("country", "Country or region", template.country),
         makeSyntheticField("taxId", "Tax or registration ID", template.taxId),
       ] },
@@ -186,8 +199,9 @@
       demoCase: true,
       demoKind: kind,
       demoBatchId: batchId,
-      demoScenario: template.scenario || "normal_complete_packet",
-      demoScenarioLabel: template.scenarioLabel || "Normal complete packet",
+      demoScenario: template.scenario || (kind === "normal" ? "normal_complete_packet" : kind === "rejected" ? "reviewer_rejection" : "edge_review"),
+      demoScenarioLabel: template.scenarioLabel || (kind === "normal" ? "Normal complete packet" : kind === "rejected" ? "Reviewer rejection example" : "Review edge case"),
+      reviewerReason: template.reviewerReason || "",
       legalName: template.legalName,
       country: template.country,
       taxId: template.taxId,
@@ -210,34 +224,48 @@
   }
 
   function processSyntheticRuns(records, existingRuns, kind) {
-    const comparisonScope = existingRuns.concat(records);
+    const comparisonScope = kind === "normal" ? records : existingRuns.concat(records);
     records.forEach((run, index) => {
       const checkedAt = timeAfter(run.createdAt, 2);
       run.validation = { checkedAt, checks: evaluateRun(run) };
       run.comparison = { checkedAt: timeAfter(run.createdAt, 3), checks: evaluateComparison(run, comparisonScope) };
       const proposal = automaticDecision(run);
       const decidedAt = timeAfter(run.createdAt, 4);
+      const decisionStatus = kind === "rejected" ? "Rejected" : proposal.status;
+      const decisionSource = kind === "rejected" ? "Reviewer override" : "Rule-based decision";
+      const decisionReason = kind === "rejected"
+        ? run.demoScenarioLabel + ": " + run.reviewerReason
+        : proposal.reason;
       run.decision = {
-        status: proposal.status,
+        status: decisionStatus,
         automaticStatus: proposal.status,
-        source: "Rule-based decision",
-        reason: proposal.reason,
-        overrideReason: "",
+        source: decisionSource,
+        reason: decisionReason,
+        overrideReason: kind === "rejected" ? run.reviewerReason : "",
         decidedAt,
       };
-      run.stage = kind === "normal" ? 7 : 5;
-      run.status = proposal.status;
+      run.stage = kind === "edge" ? 5 : 7;
+      run.status = decisionStatus;
       run.auditEvents.push(
         { stage: 3, title: "Completeness and format checks", summary: run.validation.checks.filter((check) => check.state === "review").length + " review signal(s) found.", at: checkedAt },
         { stage: 4, title: "Cross-document comparison", summary: run.comparison.checks.filter((check) => check.state === "review").length + " comparison signal(s) found.", at: timeAfter(run.createdAt, 3) },
         { stage: 5, title: "Onboarding decision", summary: proposal.status + " · synthetic presentation result.", at: decidedAt },
       );
-      if (kind === "normal") {
+      run.auditEvents[run.auditEvents.length - 1].summary = decisionStatus + " decision · " + decisionSource + " · synthetic presentation result.";
+      if (kind === "normal" || kind === "rejected") {
         const followUpAt = timeAfter(run.createdAt, 5);
-        run.followUp = { required: false, subject: "", body: "", createdAt: followUpAt, updatedAt: followUpAt };
+        run.followUp = kind === "rejected"
+          ? {
+            required: true,
+            subject: "Vendor onboarding review update",
+            body: "This fictional sample demonstrates a reviewer-recorded outcome. Reason: " + decisionReason + " This draft has not been sent.",
+            createdAt: followUpAt,
+            updatedAt: followUpAt,
+          }
+          : { required: false, subject: "", body: "", createdAt: followUpAt, updatedAt: followUpAt };
         run.finalizedAt = timeAfter(run.createdAt, 6);
         run.auditEvents.push(
-          { stage: 6, title: "Vendor follow-up", summary: "No message required for this sample case.", at: followUpAt },
+          { stage: 6, title: "Vendor follow-up", summary: kind === "rejected" ? "Synthetic decision notice drafted; not sent." : "No message required for this sample case.", at: followUpAt },
           { stage: 7, title: "Run completed", summary: "Synthetic sample run finalized.", at: run.finalizedAt },
         );
       }
@@ -252,16 +280,21 @@
     if (!IS_PRESENTATION_MODE) return;
 
     const demoRuns = runs.filter((run) => run.demoCase);
-    const normalCount = demoRuns.filter((run) => run.demoKind === "normal").length;
-    const edgeCount = demoRuns.filter((run) => run.demoKind === "edge").length;
+    const normalCount = demoRuns.filter((run) => run.demoKind === "normal" && run.demoBatchId === DEMO_BATCH_NORMAL).length;
+    const edgeCount = demoRuns.filter((run) => run.demoKind === "edge" && run.demoBatchId === DEMO_BATCH_EDGE).length;
+    const rejectedCount = demoRuns.filter((run) => run.demoKind === "rejected" && run.demoBatchId === DEMO_BATCH_REJECTED).length;
     const normalButton = document.querySelector("#load-normal-demo");
     const edgeButton = document.querySelector("#load-edge-demo");
+    const rejectedButton = document.querySelector("#load-rejected-demo");
     const clearButton = document.querySelector("#clear-demo-data");
     normalButton.disabled = normalCount >= DEMO_DATASET.normalCases.length;
-    normalButton.textContent = normalCount ? "Normal portfolio loaded · " + normalCount : "Load 50 normal cases";
-    edgeButton.disabled = normalCount < DEMO_DATASET.normalCases.length || edgeCount > 0;
+    normalButton.textContent = normalCount ? "Baseline loaded - " + normalCount + " / " + DEMO_DATASET.normalCases.length : "Load " + DEMO_DATASET.normalCases.length + " baseline cases";
+    edgeButton.disabled = normalCount < DEMO_DATASET.normalCases.length || edgeCount >= DEMO_DATASET.edgeCases.length;
+    edgeButton.textContent = edgeCount ? "Pending cases added - " + edgeCount + " / " + DEMO_DATASET.edgeCases.length : "Add " + DEMO_DATASET.edgeCases.length + " pending cases";
+    rejectedButton.disabled = normalCount < DEMO_DATASET.normalCases.length || rejectedCount >= DEMO_DATASET.rejectedCases.length;
+    rejectedButton.textContent = rejectedCount ? "Rejected examples added - " + rejectedCount + " / " + DEMO_DATASET.rejectedCases.length : "Add " + DEMO_DATASET.rejectedCases.length + " rejected examples";
     clearButton.disabled = demoRuns.length === 0;
-    document.querySelector("#demo-data-status").textContent = normalCount + " normal sample case(s) and " + edgeCount + " of " + DEMO_DATASET.edgeCases.length + " edge scenario(s) loaded. Dashboard facts are calculated from this browser's saved records.";
+    document.querySelector("#demo-data-status").textContent = normalCount + " baseline cases, " + edgeCount + " of " + DEMO_DATASET.edgeCases.length + " pending examples, and " + rejectedCount + " of " + DEMO_DATASET.rejectedCases.length + " reviewer rejections loaded. Dashboard facts use this browser's saved records.";
   }
 
   function loadNormalDemoDataset(showMessage = true) {
@@ -280,16 +313,16 @@
 
   function loadEdgeDemoDataset() {
     const runs = readRuns();
-    const normalCount = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL).length;
+    const normalCount = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal").length;
     if (normalCount < DEMO_DATASET.normalCases.length) {
-      showToast("Load the normal portfolio first, then add the edge cases.");
+      showToast("Load the full baseline first, then add review examples.");
       return;
     }
     if (runs.some((run) => run.demoBatchId === DEMO_BATCH_EDGE)) {
-      showToast("The four edge scenarios are already loaded.");
+      showToast("The pending examples are already loaded.");
       return;
     }
-    const normalExamples = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL);
+    const normalExamples = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal");
     const records = DEMO_DATASET.edgeCases.map((item, index) => {
       const template = item.duplicateOf === undefined ? item : Object.assign({}, item, {
         country: normalExamples[item.duplicateOf].country,
@@ -301,7 +334,34 @@
     processSyntheticRuns(records, runs, "edge");
     writeRuns(runs.concat(records));
     renderQueue();
-    showToast("Four edge cases added: missing document, invalid ID shape, name mismatch, and possible duplicate.");
+    showToast("Four pending examples added with distinct review signals.");
+  }
+
+  function loadRejectedDemoDataset() {
+    const runs = readRuns();
+    const normalExamples = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal");
+    if (normalExamples.length < DEMO_DATASET.normalCases.length) {
+      showToast("Load the full baseline first, then add reviewer rejection examples.");
+      return;
+    }
+    if (runs.some((run) => run.demoBatchId === DEMO_BATCH_REJECTED)) {
+      showToast("The reviewer rejection examples are already loaded.");
+      return;
+    }
+    const records = DEMO_DATASET.rejectedCases.map((item, index) => {
+      const template = item.duplicateOf === undefined ? item : Object.assign({}, item, {
+        legalName: normalExamples[item.duplicateOf].legalName,
+        country: normalExamples[item.duplicateOf].country,
+        taxId: normalExamples[item.duplicateOf].taxId,
+        email: normalExamples[item.duplicateOf].email,
+        accountHolder: normalExamples[item.duplicateOf].accountHolder,
+      });
+      return makeSyntheticRun(template, index, DEMO_BATCH_REJECTED, "rejected");
+    });
+    processSyntheticRuns(records, runs, "rejected");
+    writeRuns(runs.concat(records));
+    renderQueue();
+    showToast(records.length + " reviewer rejection examples added. They are synthetic manual overrides with reasons.");
   }
 
   function clearDemoDataset() {
@@ -316,7 +376,21 @@
   }
 
   function bootstrapLocalDemoDataset() {
-    if (!IS_PRESENTATION_MODE || localStorage.getItem(DEMO_BOOTSTRAP_KEY)) return;
+    if (!IS_PRESENTATION_MODE) return;
+    const savedVersion = localStorage.getItem(DEMO_DATASET_VERSION_KEY);
+    if (savedVersion !== DEMO_DATASET.version) {
+      const runs = readRuns();
+      if (runs.some((run) => run.demoCase)) {
+        const manualRuns = runs.filter((run) => !run.demoCase);
+        const baseline = DEMO_DATASET.normalCases.map((item, index) => makeSyntheticRun(item, index, DEMO_BATCH_NORMAL, "normal"));
+        processSyntheticRuns(baseline, manualRuns, "normal");
+        writeRuns(manualRuns.concat(baseline));
+        localStorage.setItem(DEMO_BOOTSTRAP_KEY, "loaded");
+        showToast("Demo portfolio updated. Your manually entered cases were kept.");
+      }
+      localStorage.setItem(DEMO_DATASET_VERSION_KEY, DEMO_DATASET.version);
+    }
+    if (localStorage.getItem(DEMO_BOOTSTRAP_KEY)) return;
     if (readRuns().length === 0 && DEMO_DATASET.normalCases.length >= 50) loadNormalDemoDataset(false);
     localStorage.setItem(DEMO_BOOTSTRAP_KEY, localStorage.getItem(DEMO_BOOTSTRAP_KEY) || "checked");
   }
@@ -430,6 +504,58 @@
     }).join("");
   }
 
+  function renderOutcomeChart(container, rows, total) {
+    const palette = { approved: "#42a985", pending: "#e0aa50", rejected: "#cc7168", neutral: "#aab6bd" };
+    let angle = 0;
+    const slices = rows.filter((row) => row.value > 0).map((row) => {
+      const start = angle;
+      angle += total ? (row.value / total) * 360 : 0;
+      return palette[row.color] + " " + start.toFixed(2) + "deg " + angle.toFixed(2) + "deg";
+    });
+    const gradient = slices.length ? "conic-gradient(from -90deg, " + slices.join(", ") + ")" : "conic-gradient(#e5ebed 0deg 360deg)";
+    const legend = rows.map((row) => {
+      const percent = total ? Math.round((row.value / total) * 100) : 0;
+      return '<li><span class="outcome-legend-dot ' + escapeHtml(row.color) + '"></span><span class="outcome-legend-name">' + escapeHtml(row.label) + '</span><strong>' + row.value + '</strong><small>' + percent + '%</small></li>';
+    }).join("");
+    container.innerHTML = '<div class="outcome-chart-layout"><div class="outcome-donut" style="--outcome-gradient:' + gradient + '" role="img" aria-label="Case disposition across ' + total + ' cases"><div class="outcome-donut-center"><strong>' + total + '</strong><span>CASES</span></div></div><ul class="outcome-legend">' + legend + '</ul></div>';
+  }
+
+  function renderTrendChart(container, rows) {
+    const width = 720;
+    const height = 248;
+    const left = 42;
+    const right = 16;
+    const top = 20;
+    const bottom = 48;
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+    const maxValue = Math.max(...rows.map((row) => row.value), 1);
+    const xAt = (index) => left + (rows.length <= 1 ? plotWidth / 2 : index * plotWidth / (rows.length - 1));
+    const yAt = (value) => top + plotHeight - (value / maxValue) * plotHeight;
+    const points = rows.map((row, index) => ({ x: xAt(index), y: yAt(row.value), row }));
+    const linePath = points.map((point, index) => (index ? "L " : "M ") + point.x.toFixed(1) + " " + point.y.toFixed(1)).join(" ");
+    const areaPath = linePath + " L " + points[points.length - 1].x.toFixed(1) + " " + (top + plotHeight) + " L " + points[0].x.toFixed(1) + " " + (top + plotHeight) + " Z";
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+      const value = Math.round(maxValue * ratio);
+      const y = yAt(value);
+      return '<line class="trend-grid-line" x1="' + left + '" y1="' + y.toFixed(1) + '" x2="' + (width - right) + '" y2="' + y.toFixed(1) + '"/><text class="trend-axis-label" x="' + (left - 10) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + value + '</text>';
+    }).join("");
+    const marks = points.map((point) => '<circle class="trend-point" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="5"><title>' + escapeHtml(point.row.label) + ': ' + point.row.value + ' cases</title></circle><text class="trend-value-label" x="' + point.x.toFixed(1) + '" y="' + Math.max(top + 12, point.y - 12).toFixed(1) + '" text-anchor="middle">' + point.row.value + '</text><text class="trend-month-label" x="' + point.x.toFixed(1) + '" y="' + (height - 15) + '" text-anchor="middle">' + escapeHtml(point.row.label) + '</text>').join("");
+    const total = rows.reduce((sum, row) => sum + row.value, 0);
+    const peak = rows.reduce((best, row) => row.value > best.value ? row : best, { label: "—", value: 0 });
+    container.innerHTML = '<svg class="trend-chart-svg" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Monthly intake trend. ' + escapeHtml(rows.map((row) => row.label + " " + row.value).join(", ")) + '"><defs><linearGradient id="trend-fill-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#76c3ab" stop-opacity=".42"/><stop offset="100%" stop-color="#76c3ab" stop-opacity=".02"/></linearGradient></defs><title>Cases received by month</title>' + ticks + '<path class="trend-area" d="' + areaPath + '"/><path class="trend-line" d="' + linePath + '"/>' + marks + '</svg><div class="trend-chart-summary"><span><strong>' + total + '</strong> cases in period</span><span>Peak month <strong>' + escapeHtml(peak.label) + ' · ' + peak.value + '</strong></span></div>';
+  }
+
+  function renderCountryChart(container, rows, total) {
+    const colors = ["#348f83", "#7270b5", "#e1a84e", "#4b9ab3", "#cc786e", "#73975c", "#9a71a4"];
+    const maxValue = Math.max(...rows.map((row) => row.value), 1);
+    container.innerHTML = '<div class="country-chart-columns" role="list">' + rows.map((row, index) => {
+      const percent = total ? Math.round((row.value / total) * 100) : 0;
+      const height = Math.max(5, (row.value / maxValue) * 100);
+      return '<div class="country-chart-column" role="listitem" aria-label="' + escapeHtml(row.label) + ': ' + row.value + ' cases, ' + percent + ' percent" title="' + escapeHtml(row.label) + ': ' + row.value + ' cases (' + percent + '%)"><div class="country-chart-plot" style="--bar-height:' + height.toFixed(1) + '%;--country-color:' + colors[index % colors.length] + '"><strong>' + row.value + '</strong><span></span></div><span class="country-chart-label">' + escapeHtml(row.label) + '</span><small>' + percent + '%</small></div>';
+    }).join("") + '</div>';
+  }
+
   function casesByMonth(runs, monthsBack = 5) {
     const now = new Date();
     const buckets = [];
@@ -494,9 +620,10 @@
     document.querySelector("#analytics-insight-doc-note").textContent = `${documentComplete} of ${runs.length} cases have all three types`;
     const normalSamples = runs.filter((run) => run.demoKind === "normal");
     const edgeSamples = runs.filter((run) => run.demoKind === "edge");
+    const rejectedSamples = runs.filter((run) => run.demoKind === "rejected");
     document.querySelector("#analytics-normal-count").textContent = String(normalSamples.length);
     document.querySelector("#analytics-edge-count").textContent = String(edgeSamples.length);
-    document.querySelector("#analytics-normal-approved").textContent = String(normalSamples.filter((run) => run.decision?.status === "Approved").length);
+    document.querySelector("#analytics-rejected-count").textContent = String(rejectedSamples.length);
 
     const stageNames = ["Intake", "Read", "Validate", "Compare", "Decision", "Follow-up", "Finalize"];
     const stageRows = stageNames.map((label, index) => ({
@@ -505,22 +632,33 @@
       color: "teal",
     }));
     renderAnalyticsBars(document.querySelector("#analytics-stage-bars"), stageRows, Math.max(runs.length, 1));
-    renderAnalyticsBars(document.querySelector("#analytics-outcome-bars"), [
+    renderOutcomeChart(document.querySelector("#analytics-outcome-chart"), [
       { label: "Approved", value: approved, color: "approved" },
       { label: "Pending", value: pending, color: "pending" },
       { label: "Rejected", value: rejected, color: "rejected" },
       { label: "Not decided", value: runs.length - decisions.length, color: "neutral" },
-    ], Math.max(runs.length, 1));
-    renderAnalyticsBars(document.querySelector("#analytics-month-bars"), casesByMonth(runs), Math.max(...casesByMonth(runs).map((row) => row.value), 1));
+    ], runs.length);
+    const monthRows = casesByMonth(runs);
+    renderTrendChart(document.querySelector("#analytics-month-chart"), monthRows);
+    const peakMonth = monthRows.reduce((best, row) => row.value > best.value ? row : best, { label: "—", value: 0 });
+    document.querySelector("#analytics-month-note").textContent = "Uneven intake over six months · peak " + peakMonth.label + " with " + peakMonth.value + " cases.";
     const countries = new Map();
     runs.forEach((run) => countries.set(run.country || "Unspecified", (countries.get(run.country || "Unspecified") || 0) + 1));
     const countryRows = Array.from(countries, ([label, value]) => ({ label, value, color: "purple" })).sort((a, b) => b.value - a.value).slice(0, 8);
-    renderAnalyticsBars(document.querySelector("#analytics-country-bars"), countryRows, Math.max(...countryRows.map((row) => row.value), 1));
+    renderCountryChart(document.querySelector("#analytics-country-chart"), countryRows, runs.length);
+    const leadingCountry = countryRows[0];
+    document.querySelector("#analytics-country-note").textContent = leadingCountry
+      ? leadingCountry.label + " leads with " + leadingCountry.value + " cases; the mix is intentionally uneven."
+      : "Regional mix across the saved portfolio.";
     const edgeRows = DEMO_DATASET.edgeCases.map((scenario) => ({
       label: scenario.scenarioLabel,
       value: edgeSamples.filter((run) => run.demoScenario === scenario.scenario).length,
       color: "pending",
-    }));
+    })).concat(DEMO_DATASET.rejectedCases.map((scenario) => ({
+      label: scenario.scenarioLabel,
+      value: rejectedSamples.filter((run) => run.demoScenario === scenario.scenario).length,
+      color: "rejected",
+    })));
     renderAnalyticsBars(document.querySelector("#analytics-edge-bars"), edgeRows, Math.max(...edgeRows.map((row) => row.value), 1));
 
     const reviewSignals = reviewChecks.length;
@@ -1965,6 +2103,7 @@
 
   document.querySelector("#load-normal-demo").addEventListener("click", () => loadNormalDemoDataset());
   document.querySelector("#load-edge-demo").addEventListener("click", loadEdgeDemoDataset);
+  document.querySelector("#load-rejected-demo").addEventListener("click", loadRejectedDemoDataset);
   document.querySelector("#clear-demo-data").addEventListener("click", clearDemoDataset);
   document.querySelector("#theme-toggle").addEventListener("click", () => {
     const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";

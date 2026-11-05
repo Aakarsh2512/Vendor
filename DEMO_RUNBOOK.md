@@ -2,37 +2,38 @@
 
 ## Portfolio dashboard demo: normal cases first
 
-For a hosted presentation, open the Render URL with ?demo=1. The first visit in a clean browser loads the 50 normal cases; click **Add 4 edge cases** after recording the normal baseline.
+For a hosted presentation, open the Render URL with ?demo=1. The first visit in a clean browser loads 100 baseline cases with an uneven country mix. Then add four Pending cases and eight reviewer-rejected examples.
 
 Use this sequence for the dashboard and analytics recording, then record the edge cases as a second part. The portfolio contains fictional examples only. The normal cases are passed through the workflow's existing validation, comparison, and automatic decision functions. Their document items and extraction evidence are simulated records; there are no source files attached, and the detail view says so.
 
 ### Set up the normal portfolio
 
 1. Start the local app with `py server.py` and open `http://127.0.0.1:8000` in the same browser you will record.
-2. On a fresh browser, the app seeds 50 normal cases once. If the dashboard already has data, go to **Overview** and click **Load 50 normal cases**. The sample label distinguishes them from manual submissions.
+2. On a fresh browser, the app seeds 100 baseline cases once. If needed, go to **Overview** and click **Load 100 baseline cases**. A dataset update replaces old synthetic samples and preserves manual cases.
 3. Show the Overview totals, then open **Analytics** and **Decision outputs**. These pages recalculate from the cases stored in this browser.
 4. Record the baseline before loading edge cases. If you need a clean repeat, click **Clear demo data** on Overview; this preserves manually entered cases. Refresh and load the normal portfolio again.
 
 ### Narration for the baseline
 
-**Say:** "This dashboard is populated with 50 fictional standard vendor submissions across five countries. Each sample has three simulated evidence records and has been processed by the same configured workflow rules, so we can inspect the baseline across the full portfolio rather than a single hand-entered case."
+**Say:** "This dashboard is populated with 100 fictional standard vendor submissions across five countries, with a deliberately uneven mix that reflects a more realistic intake portfolio. Each sample has three simulated evidence records and has been processed by the configured workflow rules, so we can inspect a useful baseline rather than a single hand-entered case."
 
-**Show:** Overview totals and priority actions. Open Analytics and point out the 50 normal cases, approval rate, supporting-document coverage, stage progression, monthly intake, and country mix. The samples are spread across recent months so the trend chart is visible; the month values are part of the synthetic demo data.
+**Show:** Overview totals and priority actions. Open Analytics and show the disposition donut, monthly trend line, country columns, approval rate, document coverage, and workflow stages. The baseline country mix is India 38, United States 24, United Kingdom 16, Canada 12, and Australia 10. Month values are part of the synthetic demo data.
 
-**Say:** "The normal set gives us 50 out of 50 rule-based approvals. Analytics groups those saved browser records by outcome, month, country, and workflow stage. These are prototype checks and sample results, not live registry verification."
+**Say:** "The baseline gives us 100 out of 100 rule-based approvals. The charts show outcome mix, intake volume over time, and regional concentration. These are prototype checks on synthetic records, not live registry verification."
 
 **Show:** Decision outputs. Point to the decision mix, rule-based count, reviewer overrides, follow-up drafts, and decision register. Open one row and show the synthetic evidence notice.
 
-### Add the four edge scenarios after the baseline
+### Add review and rejection examples after the baseline
 
-On Overview, click **Add 4 edge cases**. Analytics lists the four scenarios separately, and Decision outputs should now show 54 recorded decisions: 50 Approved normal cases and 4 Pending review cases, provided no other manually created cases are present. Open each sample marked `SAMPLE` and use its scenario label/review checks to explain the issue:
+On Overview, click **Add 4 pending cases**. Analytics lists the four scenarios and Decision outputs should show 104 decisions: 100 Approved baseline cases and 4 Pending review cases, if there are no manual cases. Then click **Add 8 rejected examples**. The full presentation set now shows 112 decisions: 100 Approved, 4 Pending, and 8 Rejected.
 
 - Missing bank proof.
 - Tax ID shape needs review.
 - Bank holder differs from vendor name.
 - Possible duplicate submission.
+- Eight reviewer overrides with visible reasons (confirmed duplicate, unresolved bank or registration details, tax ID not corrected, declined onboarding terms, or no response to follow-up).
 
-**Say:** "Now I add four controlled exceptions. The workflow leaves them Pending and explains the signal, so an analyst can resolve the gap instead of receiving an unexplained rejection. The examples are synthetic; the rules here only check formats and the browser's saved history."
+**Say:** "These four exceptions remain Pending so an analyst can resolve the gap. I also added eight examples where a reviewer records a rejection with a reason. Rejection is a human override in this prototype, never an automatic outcome. All records are synthetic, and the rules only check formats and this browser's saved history."
 
 End on **Analyst Copilot** to show its queue summary and suggested next actions. The copilot uses local deterministic rules and the country reference dataset; it has no paid API or hosted AI dependency.
 
