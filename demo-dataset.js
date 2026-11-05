@@ -79,6 +79,8 @@
       email: "vendor-edge-01@demo.example.com",
       accountHolder: "Demo Westhaven Distribution Ltd.",
       missingDocuments: ["Bank proof"],
+      handling: "Keep the case Pending. Request the bank proof, then rerun checks when the document arrives.",
+      signalLabel: "Required supporting documents",
     },
     {
       scenario: "invalid_tax_id",
@@ -88,6 +90,8 @@
       taxId: "INVALID123",
       email: "vendor-edge-02@demo.example.com",
       accountHolder: "Demo Silver Fern Supplies Pvt. Ltd.",
+      handling: "Keep the case Pending. Compare the ID with the source and country guidance; request a correction if it still differs.",
+      signalLabel: "Tax or registration ID format",
     },
     {
       scenario: "bank_name_mismatch",
@@ -97,6 +101,8 @@
       taxId: "712340987RT0001",
       email: "vendor-edge-03@demo.example.com",
       accountHolder: "Riverstone Treasury Services Ltd.",
+      handling: "Keep the case Pending. Ask for proof that the account belongs to the vendor or an authorized related entity.",
+      signalLabel: "Registered name vs bank account holder",
     },
     {
       scenario: "possible_duplicate",
@@ -107,6 +113,8 @@
       email: duplicateBase.email,
       accountHolder: "Demo Mosaic Field Services Ltd.",
       duplicateOf: 49,
+      handling: "Pause for reviewer confirmation. Compare the matching ID and contact details; a possible duplicate is never auto-rejected.",
+      signalLabel: "Possible duplicate submission",
     },
   ];
 

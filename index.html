@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=14" />
+    <link rel="stylesheet" href="styles.css?v=15" />
   </head>
   <body>
     <div class="app-shell">
@@ -281,6 +281,11 @@
               <article><span>REVIEWER REJECTIONS</span><strong id="analytics-rejected-count">0</strong><small>Manual decisions with reasons</small></article>
               <article><span>OPEN REVIEW SIGNALS</span><strong id="analytics-review-signal-count">0</strong><small>Across saved cases</small></article>
             </div>
+            <section class="panel analytics-health analytics-edge-panel hidden" id="analytics-edge-panel">
+              <div class="section-heading"><div><span class="section-eyebrow">EDGE-CASE WALKTHROUGH</span><h2>Four cases that need a reviewer</h2><p>Open a case to see the signal, evidence, and recommended next step.</p></div><button class="text-action" type="button" data-view="outputs">View rejection decisions</button></div>
+              <div class="exception-case-grid" id="analytics-edge-cases"></div>
+              <p class="exception-demo-note">The four examples stay Pending. Rejections in Decision outputs are recorded human overrides, not automatic outcomes.</p>
+            </section>
             <div class="analytics-columns">
               <section class="panel analytics-panel">
                 <div class="section-heading"><div><span class="section-eyebrow">WORKFLOW FLOW</span><h2 id="analytics-title">Cases by stage</h2><p>Count of cases that reached each stage.</p></div></div>
@@ -301,10 +306,6 @@
                 <div id="analytics-country-chart" class="country-chart"></div>
               </section>
             </div>
-            <section class="panel analytics-health analytics-edge-panel">
-              <div class="section-heading"><div><span class="section-eyebrow">REVIEW EXCEPTIONS</span><h2>Pending and rejection scenarios</h2><p>Pending cases stay open; rejected examples record a human override and its reason.</p></div></div>
-              <div class="analytics-bars" id="analytics-edge-bars"></div>
-            </section>
             <section class="panel analytics-health">
               <div class="section-heading"><div><span class="section-eyebrow">OPERATIONS SNAPSHOT</span><h2>Review workload</h2><p>Signals from the locally recorded case history.</p></div></div>
               <div class="health-grid" id="analytics-health-grid"></div>
@@ -468,7 +469,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=1"></script>
-    <script src="demo-dataset.js?v=3"></script>
-    <script src="app.js?v=12"></script>
+    <script src="demo-dataset.js?v=4"></script>
+    <script src="app.js?v=13"></script>
   </body>
 </html>

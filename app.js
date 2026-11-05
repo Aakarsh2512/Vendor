@@ -508,6 +508,33 @@
     }).join("");
   }
 
+  function renderEdgeCaseWalkthrough(edgeSamples) {
+    const panel = document.querySelector("#analytics-edge-panel");
+    const container = document.querySelector("#analytics-edge-cases");
+    panel.classList.toggle("hidden", !IS_PRESENTATION_MODE);
+    if (!IS_PRESENTATION_MODE) return;
+
+    container.innerHTML = DEMO_DATASET.edgeCases.map((scenario, index) => {
+      const run = edgeSamples.find((item) => item.demoScenario === scenario.scenario);
+      const checks = run ? (run.validation?.checks || []).concat(run.comparison?.checks || []) : [];
+      const signal = checks.find((check) => check.label === scenario.signalLabel && check.state === "review")
+        || checks.find((check) => check.state === "review");
+      const status = run ? run.decision?.status || run.status || "Pending" : "Not loaded";
+      const statusTone = run ? statusClass(status) : "received";
+      const signalMarkup = signal
+        ? `<div class="exception-case-signal"><span>Flagged check</span><strong>${escapeHtml(signal.label)}</strong><p>${escapeHtml(signal.detail)}</p></div>`
+        : `<div class="exception-case-signal empty"><span>Flagged check</span><p>${run ? "No active review flag is recorded." : "Open Sample controls above and add the pending cases."}</p></div>`;
+      return `<article class="exception-case-card">
+        <div class="exception-case-top"><span class="exception-case-index">${String(index + 1).padStart(2, "0")}</span><span class="exception-case-status ${statusTone}">${escapeHtml(status)}</span></div>
+        <h3>${escapeHtml(scenario.scenarioLabel)}</h3>
+        <p class="exception-case-vendor">${escapeHtml(run?.legalName || "Sample case not loaded")}${run ? `<small>${escapeHtml(run.id)}</small>` : ""}</p>
+        ${signalMarkup}
+        <p class="exception-case-handling"><strong>Recommended handling</strong>${escapeHtml(scenario.handling)}</p>
+        <button class="button-secondary exception-case-open" type="button" data-open-run="${escapeHtml(run?.id || "")}" ${run ? "" : "disabled"}>${run ? "Open case" : "Load pending cases"}</button>
+      </article>`;
+    }).join("");
+  }
+
   function renderOutcomeChart(container, rows, total) {
     const palette = { approved: "#42a985", pending: "#e0aa50", rejected: "#cc7168", neutral: "#aab6bd" };
     let angle = 0;
@@ -654,16 +681,7 @@
     document.querySelector("#analytics-country-note").textContent = leadingCountry
       ? leadingCountry.label + " leads with " + leadingCountry.value + " cases; the mix is intentionally uneven."
       : "Regional mix across the saved portfolio.";
-    const edgeRows = DEMO_DATASET.edgeCases.map((scenario) => ({
-      label: scenario.scenarioLabel,
-      value: edgeSamples.filter((run) => run.demoScenario === scenario.scenario).length,
-      color: "pending",
-    })).concat(DEMO_DATASET.rejectedCases.map((scenario) => ({
-      label: scenario.scenarioLabel,
-      value: rejectedSamples.filter((run) => run.demoScenario === scenario.scenario).length,
-      color: "rejected",
-    })));
-    renderAnalyticsBars(document.querySelector("#analytics-edge-bars"), edgeRows, Math.max(...edgeRows.map((row) => row.value), 1));
+    renderEdgeCaseWalkthrough(edgeSamples);
 
     const reviewSignals = reviewChecks.length;
     document.querySelector("#analytics-review-signal-count").textContent = String(reviewSignals);
@@ -1113,9 +1131,23 @@
     document.querySelector("#dialog-created").textContent = fullDate(run.createdAt);
     const demoBanner = document.querySelector("#demo-case-banner");
     demoBanner.classList.toggle("hidden", !run.demoCase);
-    demoBanner.textContent = run.demoCase
-      ? "Synthetic presentation case. The extracted evidence and stage results are simulated; no source-file bytes are attached."
-      : "";
+    if (run.demoCase) {
+      const scenario = DEMO_DATASET.edgeCases.concat(DEMO_DATASET.rejectedCases)
+        .find((item) => item.scenario === run.demoScenario);
+      const resultLabel = run.demoKind === "edge"
+        ? "Pending review"
+        : run.demoKind === "rejected"
+          ? "Reviewer-recorded rejection"
+          : "Baseline example";
+      const response = run.demoKind === "edge"
+        ? "Recommended handling: " + (scenario?.handling || "Review the flagged evidence and keep the case open until resolved.")
+        : run.demoKind === "rejected"
+          ? "This is a human reviewer override with a saved reason; the system does not reject cases automatically."
+          : "This is a fictional baseline record processed by the prototype rules.";
+      demoBanner.textContent = resultLabel + ": " + run.demoScenarioLabel + ". " + response + " Evidence and stage results are simulated; no source files are attached.";
+    } else {
+      demoBanner.textContent = "";
+    }
     const details = [
       ["Country / region", run.country],
       ["Tax / registration ID", run.taxId],

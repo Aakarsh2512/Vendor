@@ -2,16 +2,16 @@
 
 ## Portfolio dashboard demo: normal cases first
 
-For a hosted presentation, open the Render URL with ?demo=1. The first visit in a clean browser loads 100 baseline cases with an uneven country mix. Then add four Pending cases and eight reviewer-rejected examples.
+For a hosted presentation, open the Render URL with ?demo=1. The first visit in a clean browser loads 100 baseline cases with an uneven country mix. In Analytics, expand **Sample controls** to add four Pending cases and eight reviewer-rejected examples.
 
 Use this sequence for the dashboard and analytics recording, then record the edge cases as a second part. The portfolio contains fictional examples only. The normal cases are passed through the workflow's existing validation, comparison, and automatic decision functions. Their document items and extraction evidence are simulated records; there are no source files attached, and the detail view says so.
 
 ### Set up the normal portfolio
 
 1. Start the local app with `py server.py` and open `http://127.0.0.1:8000` in the same browser you will record.
-2. On a fresh browser, the app seeds 100 baseline cases once. If needed, go to **Overview** and click **Load 100 baseline cases**. A dataset update replaces old synthetic samples and preserves manual cases.
+2. On a fresh browser, the app seeds 100 baseline cases once. If needed, open **Analytics > Sample controls** and click **Load baseline**. A dataset update replaces old synthetic samples and preserves manual cases.
 3. Show the Overview totals, then open **Analytics** and **Decision outputs**. These pages recalculate from the cases stored in this browser.
-4. Record the baseline before loading edge cases. If you need a clean repeat, click **Clear demo data** on Overview; this preserves manually entered cases. Refresh and load the normal portfolio again.
+4. Record the baseline before loading edge cases. If you need a clean repeat, open **Analytics > Sample controls** and click **Reset samples**; this preserves manually entered cases. Refresh and load the normal portfolio again.
 
 ### Narration for the baseline
 
@@ -25,7 +25,7 @@ Use this sequence for the dashboard and analytics recording, then record the edg
 
 ### Add review and rejection examples after the baseline
 
-On Overview, click **Add 4 pending cases**. Analytics lists the four scenarios and Decision outputs should show 104 decisions: 100 Approved baseline cases and 4 Pending review cases, if there are no manual cases. Then click **Add 8 rejected examples**. The full presentation set now shows 112 decisions: 100 Approved, 4 Pending, and 8 Rejected.
+In **Analytics > Sample controls**, click **Add pending**, then **Add rejected**. With no manual cases, the portfolio shows 112 decisions: 100 Approved, 4 Pending, and 8 Rejected.
 
 - Missing bank proof.
 - Tax ID shape needs review.
@@ -34,6 +34,25 @@ On Overview, click **Add 4 pending cases**. Analytics lists the four scenarios a
 - Eight reviewer overrides with visible reasons (confirmed duplicate, unresolved bank or registration details, tax ID not corrected, declined onboarding terms, or no response to follow-up).
 
 **Say:** "These four exceptions remain Pending so an analyst can resolve the gap. I also added eight examples where a reviewer records a rejection with a reason. Rejection is a human override in this prototype, never an automatic outcome. All records are synthetic, and the rules only check formats and this browser's saved history."
+
+### Edge-case walkthrough for the recording
+
+After loading the Pending examples, use the **Edge-case walkthrough** cards in Analytics. Click **Open case** on each card. The case report shows its saved check result, synthetic evidence notice, recommended handling, and an editable follow-up action. The examples are prepared at the Pending decision stage so the recording can focus on reviewer handling instead of repeating the intake workflow.
+
+| Case | What to point out | Recommended handling |
+| --- | --- | --- |
+| Missing bank proof | Required supporting documents flags the missing Bank proof; the case stays Pending. | Request the proof. Rerun checks after it arrives. |
+| Tax ID shape needs review | The configured country format check flags `INVALID123`. | Compare with the source and country guidance; request a correction. A shape match alone does not verify an ID. |
+| Bank holder differs from vendor name | Cross-document comparison shows different registered and account-holder names. | Ask for proof that the account belongs to the vendor or an authorized related entity. |
+| Possible duplicate submission | Stage 4 finds matching identifiers in this browser's saved history. | Pause for a human comparison. Confirm whether it is a new entity or duplicate; never auto-reject a possible match. |
+
+For the missing-document or bank-holder case, click **Prepare follow-up** to show the editable draft. Explain that it is not sent. In the duplicate case, show the matching record and identifiers, then keep the outcome Pending until a reviewer confirms the relationship.
+
+**Say:** "The workflow surfaces the reason and a safe next action. Missing evidence, a format mismatch, or a possible duplicate stays Pending while the analyst checks the source or requests clarification. The tool does not turn a signal into an automatic rejection."
+
+To show a rejection, open **Decision outputs** and select a rejected row with **Details**. Point to **Reviewer override** and the saved reason. The eight rejection examples represent human decisions after an issue remained unresolved; they are not auto-rejected edge cases.
+
+**Say:** "When the evidence cannot be resolved, a reviewer can record a rejection with a clear reason. The decision and follow-up draft stay in the audit history."
 
 End on **Analyst Copilot** to show its queue summary and suggested next actions. The copilot uses local deterministic rules and the country reference dataset; it has no paid API or hosted AI dependency.
 
