@@ -14,6 +14,7 @@ import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -55,6 +56,7 @@ app.add_middleware(
     allow_methods=["POST"],
     allow_headers=["*"],
 )
+app.mount("/assets", StaticFiles(directory=BASE_DIR / "assets"), name="assets")
 
 
 @app.get("/", include_in_schema=False)

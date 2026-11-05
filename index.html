@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=13" />
   </head>
   <body>
     <div class="app-shell">
@@ -78,7 +78,7 @@
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> VENDOR OPERATIONS <span class="eyebrow-divider">·</span> <span id="page-stage-label">WORKSPACE OVERVIEW</span></div>
               <h1 id="page-title">Operations overview</h1>
-              <p class="page-subtitle" id="page-subtitle">Track vendor cases, decisions, and the next actions for your team.</p>
+              <p class="page-subtitle" id="page-subtitle">See case volume, decisions, and next actions.</p>
             </div>
             <div class="heading-action" id="heading-action"><span class="secure-icon" id="workspace-status-icon" aria-hidden="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2"/><path d="M7 8V6a3 3 0 0 1 6 0v2"/></svg></span><span id="workspace-privacy-label">Private to this browser</span></div>
           </div>
@@ -88,33 +88,20 @@
               <div class="overview-hero-copy">
                 <span class="overview-kicker">ASA VENDOR OPERATIONS</span>
                 <h2>A clear view of every vendor case.</h2>
-                <p>Track incoming packets, resolve review gaps, and keep decisions and evidence together.</p>
-                <div class="overview-actions"><button class="button-primary" type="button" data-view="new">Start a vendor review <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button><button class="button-secondary" type="button" data-view="queue">Open review queue</button></div>
+                <p>Review packets, resolve gaps, and keep decisions traceable.</p>
+                <div class="overview-actions"><button class="button-primary" type="button" data-view="new">New vendor review <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button><button class="button-secondary" type="button" data-view="queue">View queue</button></div>
               </div>
-              <svg class="overview-illustration" viewBox="0 0 220 155" role="img" aria-label="Vendor case dashboard with documents and review status">
-                <rect x="1" y="1" width="218" height="153" rx="24" fill="#eff7f5"/>
-                <rect x="25" y="28" width="123" height="91" rx="10" fill="#fff" stroke="#d9e8e4" stroke-width="2"/>
-                <rect x="37" y="40" width="54" height="7" rx="3.5" fill="#dcebe7"/>
-                <rect x="37" y="55" width="86" height="5" rx="2.5" fill="#e9efed"/>
-                <rect x="37" y="67" width="73" height="5" rx="2.5" fill="#e9efed"/>
-                <rect x="37" y="86" width="29" height="21" rx="5" fill="#e4f4ee"/>
-                <rect x="73" y="86" width="29" height="21" rx="5" fill="#fff2dd"/>
-                <rect x="109" y="86" width="27" height="21" rx="5" fill="#eef1fb"/>
-                <circle cx="163" cy="91" r="37" fill="#d5ece4"/>
-                <circle cx="160" cy="87" r="25" fill="#fff" stroke="#4b9b88" stroke-width="3"/>
-                <path d="m178 106 21 21" stroke="#4b9b88" stroke-width="7" stroke-linecap="round"/>
-                <path d="m151 87 7 7 13-15" stroke="#388a76" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <div class="overview-hero-visual"><img src="assets/vendor-operations-hero.png" alt="Procurement analyst reviewing a vendor onboarding packet" width="1024" height="1024" fetchpriority="high" /></div>
             </div>
             <div class="overview-copilot-strip">
-              <span class="overview-sparkle" aria-hidden="true">✦</span>
-              <p><strong>Analyst Copilot</strong> gives packet suggestions, country ID guidance, and a clear view of what needs attention next.</p>
-              <button type="button" data-view="copilot">View copilot summary <span aria-hidden="true">→</span></button>
+              <span class="overview-copilot-art" aria-hidden="true"><img src="assets/copilot-document-check.png" alt="" width="512" height="512" /></span>
+              <div class="overview-copilot-copy"><strong>Analyst Copilot</strong><span>Packet checks, country ID help, next steps.</span></div>
+              <button type="button" data-view="copilot">Open Copilot <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button>
             </div>
             <section class="panel demo-data-panel" id="demo-data-panel" aria-labelledby="demo-data-title">
-              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">LOCAL SYNTHETIC DATA</span><h2 id="demo-data-title">Presentation portfolio</h2><p id="demo-data-status" aria-live="polite">Load a 100-case baseline with an uneven country mix, then add pending and reviewer-rejected examples.</p></div></div>
-              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load 100 baseline cases</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add 4 pending cases</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add 8 rejected examples</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Clear demo data</button></div>
-              <p class="demo-data-note">All sample vendors and evidence are fictional. Rejections are reasoned reviewer overrides, never automatic rules. Clearing samples preserves manually entered cases.</p>
+              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">SAMPLE DATA</span><h2 id="demo-data-title">Demo cases</h2><p id="demo-data-status" aria-live="polite">100 baseline / 4 pending / 8 rejected.</p></div></div>
+              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load baseline</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add pending</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add rejected</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Reset samples</button></div>
+              <p class="demo-data-note">Fictional samples. Manual cases are preserved.</p>
             </section>
             <div class="overview-metrics">
               <article class="overview-metric"><span>ALL CASES</span><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
@@ -478,6 +465,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=1"></script>
     <script src="demo-dataset.js?v=3"></script>
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
   </body>
 </html>

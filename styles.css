@@ -1096,3 +1096,56 @@ body { background: #edf3f4; }
 .detail-dialog input, .detail-dialog select, .detail-dialog textarea { font-size: 14px; }
 :root[data-theme="dark"] .page-content .empty-state, :root[data-theme="dark"] .page-content .overview-empty, :root[data-theme="dark"] .page-content .queue-note { color: #b7c5d1; }
 :root[data-theme="dark"] .page-content .button-secondary:hover, :root[data-theme="dark"] .theme-toggle:hover { border-color: #719c91; color: #ecf5f4; background: #30483f; }
+
+/* Overview hero, Copilot strip, and compact sample controls */
+.overview-hero { grid-template-columns: minmax(0,1fr) 270px; overflow: hidden; }
+.overview-illustration { display: none !important; }
+.overview-hero-visual { position: relative; min-width: 0; min-height: 205px; display: grid; place-items: center; isolation: isolate; }
+.overview-hero-visual::before { position: absolute; z-index: -1; width: 92%; height: 90%; border-radius: 50%; background: radial-gradient(ellipse at center,rgba(65,157,137,.18),rgba(110,111,177,.08) 55%,transparent 74%); content: ""; }
+.overview-hero-visual img { display: block; width: min(100%,285px); height: 230px; object-fit: contain; filter: drop-shadow(0 12px 20px rgba(19,43,59,.2)); }
+.overview-copilot-strip { display: grid; grid-template-columns: 56px minmax(0,1fr) auto; gap: 13px; min-height: 72px; padding: 9px 15px; margin-top: 10px; }
+.overview-copilot-art { width: 52px; height: 52px; display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid rgba(130,119,184,.2); border-radius: 13px; background: linear-gradient(145deg,#fff,#f0edf9); }
+.overview-copilot-art img { width: 58px; height: 58px; display: block; object-fit: contain; }
+.overview-copilot-copy { min-width: 0; display: grid; gap: 3px; }
+.overview-copilot-copy strong { color: #433c70; font: 800 14px/1.25 Manrope,sans-serif; }
+.overview-copilot-copy span { color: #677b7b; font-size: 12px; line-height: 1.35; }
+.overview-copilot-strip button { min-height: 36px; padding: 0 13px; font-size: 12px; }
+.overview-copilot-strip button svg { width: 15px; height: 15px; }
+.demo-data-panel { grid-template-columns: minmax(240px,.85fr) minmax(0,1.15fr); gap: 7px 15px; padding: 10px 14px; margin: 10px 0; }
+.demo-data-intro { gap: 9px; }
+.demo-data-icon { width: 34px; height: 34px; border-radius: 10px; }
+.demo-data-icon svg { width: 18px; height: 18px; }
+.demo-data-intro h2 { margin: 1px 0; font-size: 14px; }
+.demo-data-intro p { overflow: hidden; color: #74818b; font-size: 12px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.demo-data-actions { gap: 6px; }
+.demo-data-actions button { min-height: 34px; padding-right: 10px; padding-left: 10px; font-size: 11px; }
+.demo-clear-button { padding: 0 4px; font-size: 11px; }
+.demo-data-note { padding-top: 2px; border-top: 0; color: #879397; font-size: 10px; }
+:root[data-theme="dark"] .overview-copilot-copy strong { color: #eeeaff; }
+:root[data-theme="dark"] .overview-copilot-copy span { color: #c0d0d4; }
+:root[data-theme="dark"] .demo-data-intro h2 { color: #eaf2f5; }
+:root[data-theme="dark"] .demo-data-intro p, :root[data-theme="dark"] .demo-data-note { color: #bdcbd2; }
+@media (max-width: 1180px) {
+  .overview-hero { grid-template-columns: minmax(0,1fr) 220px; }
+  .overview-hero-visual { min-height: 175px; }
+  .overview-hero-visual img { width: 215px; height: 190px; }
+}
+@media (max-width: 900px) {
+  .overview-hero { grid-template-columns: minmax(0,1fr) 180px; }
+  .overview-hero-visual { min-height: 150px; }
+  .overview-hero-visual img { width: 175px; height: 155px; }
+}
+@media (max-width: 680px) {
+  .overview-hero { grid-template-columns: 1fr; }
+  .overview-hero-visual { min-height: 135px; justify-items: end; margin-top: -8px; }
+  .overview-hero-visual img { width: 180px; height: 145px; }
+  .overview-copilot-strip { grid-template-columns: 48px minmax(0,1fr); gap: 8px; padding: 9px 10px; }
+  .overview-copilot-art { width: 46px; height: 46px; }
+  .overview-copilot-art img { width: 52px; height: 52px; }
+  .overview-copilot-copy strong { font-size: 13px; }
+  .overview-copilot-copy span { font-size: 11px; }
+  .overview-copilot-strip button { grid-column: 2; justify-self: start; }
+  .demo-data-panel { grid-template-columns: 1fr; padding: 10px; }
+  .demo-data-intro p { white-space: normal; }
+  .demo-data-actions { justify-content: start; }
+}

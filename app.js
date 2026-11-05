@@ -288,13 +288,17 @@
     const rejectedButton = document.querySelector("#load-rejected-demo");
     const clearButton = document.querySelector("#clear-demo-data");
     normalButton.disabled = normalCount >= DEMO_DATASET.normalCases.length;
-    normalButton.textContent = normalCount ? "Baseline loaded - " + normalCount + " / " + DEMO_DATASET.normalCases.length : "Load " + DEMO_DATASET.normalCases.length + " baseline cases";
+    normalButton.textContent = normalCount ? "Baseline loaded" : "Load baseline";
+    normalButton.title = normalCount + " of " + DEMO_DATASET.normalCases.length + " baseline cases loaded";
     edgeButton.disabled = normalCount < DEMO_DATASET.normalCases.length || edgeCount >= DEMO_DATASET.edgeCases.length;
-    edgeButton.textContent = edgeCount ? "Pending cases added - " + edgeCount + " / " + DEMO_DATASET.edgeCases.length : "Add " + DEMO_DATASET.edgeCases.length + " pending cases";
+    edgeButton.textContent = edgeCount ? "Pending loaded" : "Add pending";
+    edgeButton.title = edgeCount + " of " + DEMO_DATASET.edgeCases.length + " pending examples loaded";
     rejectedButton.disabled = normalCount < DEMO_DATASET.normalCases.length || rejectedCount >= DEMO_DATASET.rejectedCases.length;
-    rejectedButton.textContent = rejectedCount ? "Rejected examples added - " + rejectedCount + " / " + DEMO_DATASET.rejectedCases.length : "Add " + DEMO_DATASET.rejectedCases.length + " rejected examples";
+    rejectedButton.textContent = rejectedCount ? "Rejections loaded" : "Add rejected";
+    rejectedButton.title = rejectedCount + " of " + DEMO_DATASET.rejectedCases.length + " reviewer rejections loaded";
     clearButton.disabled = demoRuns.length === 0;
-    document.querySelector("#demo-data-status").textContent = normalCount + " baseline cases, " + edgeCount + " of " + DEMO_DATASET.edgeCases.length + " pending examples, and " + rejectedCount + " of " + DEMO_DATASET.rejectedCases.length + " reviewer rejections loaded. Dashboard facts use this browser's saved records.";
+    clearButton.title = "Remove fictional samples; keep manually entered cases";
+    document.querySelector("#demo-data-status").textContent = normalCount + " baseline · " + edgeCount + " pending · " + rejectedCount + " rejected";
   }
 
   function loadNormalDemoDataset(showMessage = true) {
@@ -833,7 +837,7 @@
 
   function setView(view) {
     const copy = {
-      overview: ["Operations overview", "Track vendor cases, decisions, and the next actions for your team.", "WORKSPACE OVERVIEW"],
+      overview: ["Operations overview", "See case volume, decisions, and next actions.", "WORKSPACE OVERVIEW"],
       new: ["Start a vendor review", "Record the vendor details and documents your team received.", "NEW REVIEW"],
       queue: ["Review queue", "Open a case to continue its checks, decision, or follow-up.", "CASE QUEUE"],
       analytics: ["Operations analytics", "Understand workflow progress, outcomes, and review workload.", "ANALYTICS"],
