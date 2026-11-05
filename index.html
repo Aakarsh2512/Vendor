@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=13" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <div class="app-shell">
@@ -98,11 +98,6 @@
               <div class="overview-copilot-copy"><strong>Analyst Copilot</strong><span>Packet checks, country ID help, next steps.</span></div>
               <button type="button" data-view="copilot">Open Copilot <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button>
             </div>
-            <section class="panel demo-data-panel" id="demo-data-panel" aria-labelledby="demo-data-title">
-              <div class="demo-data-intro"><span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span><div><span class="section-eyebrow">SAMPLE DATA</span><h2 id="demo-data-title">Demo cases</h2><p id="demo-data-status" aria-live="polite">100 baseline / 4 pending / 8 rejected.</p></div></div>
-              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load baseline</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add pending</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add rejected</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Reset samples</button></div>
-              <p class="demo-data-note">Fictional samples. Manual cases are preserved.</p>
-            </section>
             <div class="overview-metrics">
               <article class="overview-metric"><span>ALL CASES</span><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
               <article class="overview-metric"><span>OPEN WORK</span><strong id="overview-active">0</strong><small>Cases still needing an action</small></article>
@@ -256,6 +251,15 @@
           </section>
 
           <section class="view hidden" id="analytics-view" aria-labelledby="analytics-title">
+            <details class="panel demo-data-panel demo-data-tools" id="demo-data-panel" aria-labelledby="demo-data-title">
+              <summary class="demo-data-summary">
+                <span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span>
+                <span class="demo-data-summary-copy"><span class="section-eyebrow">PRESENTATION DATA</span><strong id="demo-data-title">Manage sample cases</strong><small id="demo-data-status" aria-live="polite">100 baseline · 4 pending · 8 rejected</small></span>
+                <span class="demo-data-summary-action">Sample controls <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 8 5 5 5-5"/></svg></span>
+              </summary>
+              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load baseline</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add pending</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add rejected</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Reset samples</button></div>
+              <p class="demo-data-note">Fictional samples. Manual cases are preserved.</p>
+            </details>
             <div class="analytics-kpis">
               <article class="overview-metric"><span>TOTAL CASES</span><strong id="analytics-total">0</strong><small>All recorded intake runs</small></article>
               <article class="overview-metric"><span>ACTIVE CASES</span><strong id="analytics-active">0</strong><small>Not yet finalized</small></article>
