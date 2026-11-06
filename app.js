@@ -145,9 +145,12 @@
   }
 
   function makeSyntheticRun(template, index, batchId, kind) {
-    const idPrefix = kind === "normal" ? "N" : kind === "rejected" ? "R" : "E";
-    const idWidth = kind === "normal" ? 3 : 2;
-    const id = "SAMPLE-" + idPrefix + "-" + String(index + 1).padStart(idWidth, "0");
+    const sequence = kind === "normal"
+      ? index + 1
+      : kind === "edge"
+        ? 9001 + index
+        : DEMO_DATASET.normalCases.length + index + 1;
+    const id = "ASA-26-" + String(sequence).padStart(4, "0");
     const daysAgo = kind === "edge" ? DEMO_DATASET.edgeCases.length - index - 1 : 0;
     const now = new Date();
     let created;
@@ -180,16 +183,16 @@
     const includedDocuments = allDocumentSpecs.filter((spec) => !missing.has(spec.kind));
     const documents = includedDocuments.map((spec) => ({
       kind: spec.kind,
-      name: id + "-" + spec.suffix + "-SYNTHETIC.txt",
+      name: id + "-" + spec.suffix + ".txt",
       type: "text/plain",
       size: 0,
     }));
     const extractedDocuments = includedDocuments.map((spec) => ({
       kind: spec.kind,
-      filename: id + "-" + spec.suffix + "-SYNTHETIC.txt",
+      filename: id + "-" + spec.suffix + ".txt",
       contentType: "text/plain",
       status: "read",
-      message: "Synthetic presentation evidence; no source file is attached.",
+      message: "Illustrative portfolio evidence; no source file is attached.",
       pageCount: 0,
       textCharacters: spec.fields.reduce((sum, field) => sum + field.evidence.length, 0),
       fields: spec.fields,
@@ -204,6 +207,7 @@
       demoScenario: template.scenario || (kind === "normal" ? "normal_complete_packet" : kind === "rejected" ? "reviewer_rejection" : "edge_review"),
       demoScenarioLabel: template.scenarioLabel || (kind === "normal" ? "Normal complete packet" : kind === "rejected" ? "Reviewer rejection example" : "Review edge case"),
       reviewerReason: template.reviewerReason || "",
+      rejectionCategory: template.rejectionCategory || "",
       legalName: template.legalName,
       country: template.country,
       taxId: template.taxId,
@@ -219,7 +223,7 @@
       stage: 2,
       status: "Information extracted",
       auditEvents: [
-        { stage: 1, title: "Submission received", summary: "Synthetic presentation case created.", at: createdAt },
+        { stage: 1, title: "Submission received", summary: "Portfolio record created.", at: createdAt },
         { stage: 2, title: "Document reading", summary: extractedDocuments.length + " synthetic evidence record(s) prepared.", at: timeAfter(createdAt, 1) },
       ],
     };
@@ -244,6 +248,7 @@
         source: decisionSource,
         reason: decisionReason,
         overrideReason: kind === "rejected" ? run.reviewerReason : "",
+        reasonCategory: kind === "rejected" ? run.rejectionCategory : "",
         decidedAt,
       };
       run.stage = kind === "edge" ? 5 : 7;
@@ -260,125 +265,61 @@
           ? {
             required: true,
             subject: "Vendor onboarding review update",
-            body: "This fictional sample demonstrates a reviewer-recorded outcome. Reason: " + decisionReason + " This draft has not been sent.",
+            body: "This fictional portfolio record demonstrates a reviewer-recorded outcome. Reason: " + decisionReason + " This draft has not been sent.",
             createdAt: followUpAt,
             updatedAt: followUpAt,
           }
           : { required: false, subject: "", body: "", createdAt: followUpAt, updatedAt: followUpAt };
         run.finalizedAt = timeAfter(run.createdAt, 6);
         run.auditEvents.push(
-          { stage: 6, title: "Vendor follow-up", summary: kind === "rejected" ? "Synthetic decision notice drafted; not sent." : "No message required for this sample case.", at: followUpAt },
-          { stage: 7, title: "Run completed", summary: "Synthetic sample run finalized.", at: run.finalizedAt },
+          { stage: 6, title: "Vendor follow-up", summary: kind === "rejected" ? "Synthetic decision notice drafted; not sent." : "No message was required for this case.", at: followUpAt },
+          { stage: 7, title: "Run completed", summary: "Portfolio run finalized.", at: run.finalizedAt },
         );
       }
     });
     return records;
   }
 
-  function renderDemoDataControls(runs) {
-    const panel = document.querySelector("#demo-data-panel");
-    if (!panel) return;
-    panel.classList.toggle("hidden", !IS_PRESENTATION_MODE);
-    if (!IS_PRESENTATION_MODE) return;
+  function createPresentationPortfolio(manualRuns) {
+    const normal = DEMO_DATASET.normalCases.map((item, index) => makeSyntheticRun(item, index, DEMO_BATCH_NORMAL, "normal"));
+    processSyntheticRuns(normal, manualRuns, "normal");
 
-    const demoRuns = runs.filter((run) => run.demoCase);
-    const normalCount = demoRuns.filter((run) => run.demoKind === "normal" && run.demoBatchId === DEMO_BATCH_NORMAL).length;
-    const edgeCount = demoRuns.filter((run) => run.demoKind === "edge" && run.demoBatchId === DEMO_BATCH_EDGE).length;
-    const rejectedCount = demoRuns.filter((run) => run.demoKind === "rejected" && run.demoBatchId === DEMO_BATCH_REJECTED).length;
-    const normalButton = document.querySelector("#load-normal-demo");
-    const edgeButton = document.querySelector("#load-edge-demo");
-    const rejectedButton = document.querySelector("#load-rejected-demo");
-    const clearButton = document.querySelector("#clear-demo-data");
-    normalButton.disabled = normalCount >= DEMO_DATASET.normalCases.length;
-    normalButton.textContent = normalCount ? "Baseline loaded" : "Load baseline";
-    normalButton.title = normalCount + " of " + DEMO_DATASET.normalCases.length + " baseline cases loaded";
-    edgeButton.disabled = normalCount < DEMO_DATASET.normalCases.length || edgeCount >= DEMO_DATASET.edgeCases.length;
-    edgeButton.textContent = edgeCount ? "Pending loaded" : "Add pending";
-    edgeButton.title = edgeCount + " of " + DEMO_DATASET.edgeCases.length + " pending examples loaded";
-    rejectedButton.disabled = normalCount < DEMO_DATASET.normalCases.length || rejectedCount >= DEMO_DATASET.rejectedCases.length;
-    rejectedButton.textContent = rejectedCount ? "Rejections loaded" : "Add rejected";
-    rejectedButton.title = rejectedCount + " of " + DEMO_DATASET.rejectedCases.length + " reviewer rejections loaded";
-    clearButton.disabled = demoRuns.length === 0;
-    clearButton.title = "Remove fictional samples; keep manually entered cases";
-    document.querySelector("#demo-data-status").textContent = normalCount + " baseline · " + edgeCount + " pending · " + rejectedCount + " rejected";
-  }
-
-  function loadNormalDemoDataset(showMessage = true) {
-    const runs = readRuns();
-    if (runs.some((run) => run.demoBatchId === DEMO_BATCH_NORMAL)) {
-      if (showMessage) showToast("The normal sample portfolio is already loaded.");
-      return;
-    }
-    const records = DEMO_DATASET.normalCases.map((item, index) => makeSyntheticRun(item, index, DEMO_BATCH_NORMAL, "normal"));
-    processSyntheticRuns(records, runs, "normal");
-    writeRuns(runs.concat(records));
-    localStorage.setItem(DEMO_BOOTSTRAP_KEY, "loaded");
-    renderQueue();
-    if (showMessage) showToast(records.length + " fictional normal cases added to the dashboard.");
-  }
-
-  function loadEdgeDemoDataset() {
-    const runs = readRuns();
-    const normalCount = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal").length;
-    if (normalCount < DEMO_DATASET.normalCases.length) {
-      showToast("Load the full baseline first, then add review examples.");
-      return;
-    }
-    if (runs.some((run) => run.demoBatchId === DEMO_BATCH_EDGE)) {
-      showToast("The pending examples are already loaded.");
-      return;
-    }
-    const normalExamples = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal");
-    const records = DEMO_DATASET.edgeCases.map((item, index) => {
+    const pending = DEMO_DATASET.edgeCases.map((item, index) => {
       const template = item.duplicateOf === undefined ? item : Object.assign({}, item, {
-        country: normalExamples[item.duplicateOf].country,
-        taxId: normalExamples[item.duplicateOf].taxId,
-        email: normalExamples[item.duplicateOf].email,
+        country: normal[item.duplicateOf].country,
+        taxId: normal[item.duplicateOf].taxId,
+        email: normal[item.duplicateOf].email,
       });
       return makeSyntheticRun(template, index, DEMO_BATCH_EDGE, "edge");
     });
-    processSyntheticRuns(records, runs, "edge");
-    writeRuns(runs.concat(records));
-    renderQueue();
-    showToast("Four pending examples added with distinct review signals.");
-  }
+    processSyntheticRuns(pending, manualRuns.concat(normal), "edge");
 
-  function loadRejectedDemoDataset() {
-    const runs = readRuns();
-    const normalExamples = runs.filter((run) => run.demoBatchId === DEMO_BATCH_NORMAL && run.demoKind === "normal");
-    if (normalExamples.length < DEMO_DATASET.normalCases.length) {
-      showToast("Load the full baseline first, then add reviewer rejection examples.");
-      return;
-    }
-    if (runs.some((run) => run.demoBatchId === DEMO_BATCH_REJECTED)) {
-      showToast("The reviewer rejection examples are already loaded.");
-      return;
-    }
-    const records = DEMO_DATASET.rejectedCases.map((item, index) => {
+    const rejected = DEMO_DATASET.rejectedCases.map((item, index) => {
       const template = item.duplicateOf === undefined ? item : Object.assign({}, item, {
-        legalName: normalExamples[item.duplicateOf].legalName,
-        country: normalExamples[item.duplicateOf].country,
-        taxId: normalExamples[item.duplicateOf].taxId,
-        email: normalExamples[item.duplicateOf].email,
-        accountHolder: normalExamples[item.duplicateOf].accountHolder,
+        legalName: normal[item.duplicateOf].legalName,
+        country: normal[item.duplicateOf].country,
+        taxId: normal[item.duplicateOf].taxId,
+        email: normal[item.duplicateOf].email,
+        accountHolder: normal[item.duplicateOf].accountHolder,
       });
       return makeSyntheticRun(template, index, DEMO_BATCH_REJECTED, "rejected");
     });
-    processSyntheticRuns(records, runs, "rejected");
-    writeRuns(runs.concat(records));
-    renderQueue();
-    showToast(records.length + " reviewer rejection examples added. They are synthetic manual overrides with reasons.");
+    processSyntheticRuns(rejected, manualRuns.concat(normal, pending), "rejected");
+    return normal.concat(pending, rejected);
   }
 
-  function clearDemoDataset() {
+  function loadPortfolioDataset(showMessage = true) {
     const runs = readRuns();
-    const remaining = runs.filter((run) => !run.demoCase);
-    const removedCount = runs.length - remaining.length;
-    if (!removedCount) return;
-    writeRuns(remaining);
-    localStorage.setItem(DEMO_BOOTSTRAP_KEY, "cleared");
+    if (runs.some((run) => run.demoCase)) {
+      if (showMessage) showToast("The portfolio dataset is already loaded.");
+      return;
+    }
+    const manualRuns = runs.filter((run) => !run.demoCase);
+    const records = createPresentationPortfolio(manualRuns);
+    writeRuns(manualRuns.concat(records));
+    localStorage.setItem(DEMO_BOOTSTRAP_KEY, "loaded");
     renderQueue();
-    showToast(removedCount + " synthetic sample case(s) removed. Your manually entered cases remain.");
+    if (showMessage) showToast(records.length + " fictional portfolio cases added, including reviewer decisions with reasons.");
   }
 
   function bootstrapLocalDemoDataset() {
@@ -386,18 +327,17 @@
     const savedVersion = localStorage.getItem(DEMO_DATASET_VERSION_KEY);
     if (savedVersion !== DEMO_DATASET.version) {
       const runs = readRuns();
-      if (runs.some((run) => run.demoCase)) {
-        const manualRuns = runs.filter((run) => !run.demoCase);
-        const baseline = DEMO_DATASET.normalCases.map((item, index) => makeSyntheticRun(item, index, DEMO_BATCH_NORMAL, "normal"));
-        processSyntheticRuns(baseline, manualRuns, "normal");
-        writeRuns(manualRuns.concat(baseline));
-        localStorage.setItem(DEMO_BOOTSTRAP_KEY, "loaded");
-        showToast("Demo portfolio updated. Your manually entered cases were kept.");
-      }
+      const hadPortfolio = runs.some((run) => run.demoCase);
+      const manualRuns = runs.filter((run) => !run.demoCase);
+      const portfolio = createPresentationPortfolio(manualRuns);
+      writeRuns(manualRuns.concat(portfolio));
+      localStorage.setItem(DEMO_BOOTSTRAP_KEY, "loaded");
       localStorage.setItem(DEMO_DATASET_VERSION_KEY, DEMO_DATASET.version);
+      if (hadPortfolio || runs.length) showToast("Portfolio analytics updated. Your manually entered cases were kept.");
+      return;
     }
     if (localStorage.getItem(DEMO_BOOTSTRAP_KEY)) return;
-    if (readRuns().length === 0 && DEMO_DATASET.normalCases.length >= 50) loadNormalDemoDataset(false);
+    if (!readRuns().some((run) => run.demoCase) && DEMO_DATASET.normalCases.length >= 50) loadPortfolioDataset(false);
     localStorage.setItem(DEMO_BOOTSTRAP_KEY, localStorage.getItem(DEMO_BOOTSTRAP_KEY) || "checked");
   }
 
@@ -413,7 +353,7 @@
 
   function documentCountLabel(run) {
     const count = (run.documents || []).length;
-    if (run.demoCase) return count + " synthetic evidence record" + (count === 1 ? "" : "s");
+    if (run.demoCase) return count + " supporting document" + (count === 1 ? "" : "s");
     return count + " file" + (count === 1 ? "" : "s");
   }
 
@@ -433,11 +373,10 @@
     document.querySelector("#workflow-stage").textContent = `Stage ${furthestStage} of 7`;
     document.querySelector("#workflow-progress").style.width = `${Math.max(15, (furthestStage / 7) * 100)}%`;
     document.querySelector("#workflow-note").textContent = runs.length ? `Furthest submission reached stage ${furthestStage}.` : "Submission intake is ready.";
-    renderDemoDataControls(runs);
 
     body.innerHTML = runs.map((run) => `
       <tr>
-        <td><div class="vendor-cell"><span class="vendor-avatar">${escapeHtml(initials(run.legalName || "V"))}</span><span>${escapeHtml(run.legalName)}</span>${run.demoCase ? '<span class="demo-row-tag">SAMPLE</span>' : ""}</div></td>
+        <td><div class="vendor-cell"><span class="vendor-avatar">${escapeHtml(initials(run.legalName || "V"))}</span><span>${escapeHtml(run.legalName)}</span></div></td>
         <td>${escapeHtml(run.country)}</td>
         <td><span class="run-code">${escapeHtml(run.id)}</span></td>
         <td>${escapeHtml(shortDate(run.createdAt))}</td>
@@ -507,33 +446,6 @@
       const width = maxValue ? Math.round((row.value / maxValue) * 100) : 0;
       return '<div class="analytics-bar-row"><div class="analytics-bar-label"><span>' + escapeHtml(row.label) + '</span><strong>' + row.value + '</strong></div>'
         + '<div class="analytics-track"><span class="' + escapeHtml(row.color || "teal") + '" style="width:' + width + '%"></span></div></div>';
-    }).join("");
-  }
-
-  function renderEdgeCaseWalkthrough(edgeSamples) {
-    const panel = document.querySelector("#analytics-edge-panel");
-    const container = document.querySelector("#analytics-edge-cases");
-    panel.classList.toggle("hidden", !IS_PRESENTATION_MODE);
-    if (!IS_PRESENTATION_MODE) return;
-
-    container.innerHTML = DEMO_DATASET.edgeCases.map((scenario, index) => {
-      const run = edgeSamples.find((item) => item.demoScenario === scenario.scenario);
-      const checks = run ? (run.validation?.checks || []).concat(run.comparison?.checks || []) : [];
-      const signal = checks.find((check) => check.label === scenario.signalLabel && check.state === "review")
-        || checks.find((check) => check.state === "review");
-      const status = run ? run.decision?.status || run.status || "Pending" : "Not loaded";
-      const statusTone = run ? statusClass(status) : "received";
-      const signalMarkup = signal
-        ? `<div class="exception-case-signal"><span>Flagged check</span><strong>${escapeHtml(signal.label)}</strong><p>${escapeHtml(signal.detail)}</p></div>`
-        : `<div class="exception-case-signal empty"><span>Flagged check</span><p>${run ? "No active review flag is recorded." : "Open Sample controls above and add the pending cases."}</p></div>`;
-      return `<article class="exception-case-card">
-        <div class="exception-case-top"><span class="exception-case-index">${String(index + 1).padStart(2, "0")}</span><span class="exception-case-status ${statusTone}">${escapeHtml(status)}</span></div>
-        <h3>${escapeHtml(scenario.scenarioLabel)}</h3>
-        <p class="exception-case-vendor">${escapeHtml(run?.legalName || "Sample case not loaded")}${run ? `<small>${escapeHtml(run.id)}</small>` : ""}</p>
-        ${signalMarkup}
-        <p class="exception-case-handling"><strong>Recommended handling</strong>${escapeHtml(scenario.handling)}</p>
-        <button class="button-secondary exception-case-open" type="button" data-open-run="${escapeHtml(run?.id || "")}" ${run ? "" : "disabled"}>${run ? "Open case" : "Load pending cases"}</button>
-      </article>`;
     }).join("");
   }
 
@@ -613,31 +525,70 @@
     return buckets;
   }
 
+  function renderCountryOutcomeChart(container, runs) {
+    const countryMap = new Map();
+    runs.forEach((run) => {
+      const country = run.country || "Unspecified";
+      const counts = countryMap.get(country) || { approved: 0, pending: 0, rejected: 0, undecided: 0 };
+      const status = run.decision?.status;
+      if (status === "Approved") counts.approved += 1;
+      else if (status === "Pending") counts.pending += 1;
+      else if (status === "Rejected") counts.rejected += 1;
+      else counts.undecided += 1;
+      countryMap.set(country, counts);
+    });
+    const rows = Array.from(countryMap, ([country, counts]) => ({ country, counts, total: Object.values(counts).reduce((sum, value) => sum + value, 0) }))
+      .sort((a, b) => b.total - a.total || a.country.localeCompare(b.country));
+    const max = Math.max(...rows.map((row) => row.total), 1);
+    container.innerHTML = rows.length ? rows.map(({ country, counts, total }) => {
+      const segments = ["approved", "pending", "rejected", "undecided"].map((key) => {
+        const value = counts[key];
+        const width = total ? (value / total) * 100 : 0;
+        return value ? `<i class="country-outcome-segment ${key}" style="width:${width.toFixed(2)}%" title="${key}: ${value}" aria-label="${key}: ${value}"></i>` : "";
+      }).join("");
+      const scaledWidth = (total / max) * 100;
+      return `<div class="country-outcome-row"><div class="country-outcome-label"><strong>${escapeHtml(country)}</strong><span>${total} cases</span></div><div class="country-outcome-track" style="width:${scaledWidth.toFixed(1)}%">${segments}</div><div class="country-outcome-counts"><span class="approved">${counts.approved}</span><span class="pending">${counts.pending}</span><span class="rejected">${counts.rejected}</span></div></div>`;
+    }).join("") + '<div class="country-outcome-legend"><span class="approved">Approved</span><span class="pending">Pending</span><span class="rejected">Rejected</span></div>' : '<div class="analytics-empty">No country outcomes are recorded yet.</div>';
+  }
+
+  function rejectionReasonRows(rejectedRuns) {
+    const counts = new Map();
+    rejectedRuns.forEach((run) => {
+      const category = run.decision?.reasonCategory || run.rejectionCategory || "Other reviewer reason";
+      counts.set(category, (counts.get(category) || 0) + 1);
+    });
+    return Array.from(counts, ([label, value]) => ({ label, value, color: "rejected" })).sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+  }
+
   function renderAnalytics() {
     const runs = readRuns();
     const decisions = runs.filter((run) => run.decision);
     const approved = decisions.filter((run) => run.decision.status === "Approved").length;
     const pending = decisions.filter((run) => run.decision.status === "Pending").length;
-    const rejected = decisions.filter((run) => run.decision.status === "Rejected").length;
+    const rejectedRuns = decisions.filter((run) => run.decision.status === "Rejected");
+    const rejected = rejectedRuns.length;
+    const finalOutcomes = approved + rejected;
     const active = runs.filter((run) => !run.finalizedAt).length;
     const documentComplete = runs.filter((run) => ["Registration document", "Tax document", "Bank proof"].every((kind) => (run.documents || []).some((document) => document.kind === kind))).length;
-    const reviewChecks = runs.flatMap((run) => (run.validation?.checks || []).concat(run.comparison?.checks || []))
+    const reviewChecks = runs.filter((run) => !run.finalizedAt)
+      .flatMap((run) => (run.validation?.checks || []).concat(run.comparison?.checks || []))
       .filter((check) => check.state === "review");
     const signalCounts = new Map();
     reviewChecks.forEach((check) => signalCounts.set(check.label, (signalCounts.get(check.label) || 0) + 1));
     const topSignal = Array.from(signalCounts.entries()).sort((a, b) => b[1] - a[1])[0];
-    const approvalRate = decisions.length ? Math.round((approved / decisions.length) * 100) : 0;
+    const approvalRate = finalOutcomes ? Math.round((approved / finalOutcomes) * 100) : 0;
+    const rejectionRate = finalOutcomes ? Math.round((rejected / finalOutcomes) * 100) : 0;
     const docCoverage = runs.length ? Math.round((documentComplete / runs.length) * 100) : 0;
     const completed = runs.filter((run) => run.finalizedAt).length;
+
     document.querySelector("#analytics-total").textContent = String(runs.length);
     document.querySelector("#analytics-active").textContent = String(active);
     document.querySelector("#analytics-approval-rate").textContent = approvalRate + "%";
+    document.querySelector("#analytics-rejected-kpi").textContent = String(rejected);
     document.querySelector("#analytics-doc-coverage").textContent = docCoverage + "%";
     document.querySelector("#analytics-insight-summary").textContent = !runs.length
-      ? "No submissions are saved in this browser yet. Add or load cases to see workflow performance."
-      : decisions.length
-        ? `${approved} of ${decisions.length} recorded decisions are Approved (${approvalRate}%). ${pending} Pending; ${active} case${active === 1 ? "" : "s"} still need${active === 1 ? "s" : ""} action.`
-        : `${runs.length} submission${runs.length === 1 ? " is" : "s are"} saved, with no decisions recorded yet.`;
+      ? "No cases are saved in this browser yet. The portfolio summary will appear when records are added."
+      : `${approved} Approved, ${pending} Pending, and ${rejected} reviewer-rejected cases. The approval rate is ${approvalRate}% across ${finalOutcomes} final outcomes; ${active} case${active === 1 ? "" : "s"} still need${active === 1 ? "s" : ""} action.`;
     document.querySelector("#analytics-insight-status").textContent = !runs.length ? "NO CASES" : active ? `${active} NEED ACTION` : "ALL CASES CLOSED";
     document.querySelector("#analytics-insight-decisions").textContent = `${decisions.length} decision${decisions.length === 1 ? "" : "s"}`;
     document.querySelector("#analytics-insight-decision-note").textContent = `${approved} Approved · ${pending} Pending · ${rejected} Rejected`;
@@ -645,18 +596,15 @@
     topSignalLabel.textContent = topSignal ? topSignal[0] : "None";
     topSignalLabel.title = topSignal ? topSignal[0] : "No open review flags";
     document.querySelector("#analytics-insight-signal-note").textContent = topSignal
-      ? `${topSignal[1]} flag${topSignal[1] === 1 ? "" : "s"} · ${reviewChecks.length} total open flags`
+      ? `${topSignal[1]} open case${topSignal[1] === 1 ? "" : "s"} · ${reviewChecks.length} total open flags`
       : "No open review flags";
     document.querySelector("#analytics-insight-closed").textContent = `${completed} / ${runs.length}`;
     document.querySelector("#analytics-insight-closed-note").textContent = `${active} case${active === 1 ? "" : "s"} still active`;
     document.querySelector("#analytics-insight-docs").textContent = docCoverage + "%";
     document.querySelector("#analytics-insight-doc-note").textContent = `${documentComplete} of ${runs.length} cases have all three types`;
-    const normalSamples = runs.filter((run) => run.demoKind === "normal");
-    const edgeSamples = runs.filter((run) => run.demoKind === "edge");
-    const rejectedSamples = runs.filter((run) => run.demoKind === "rejected");
-    document.querySelector("#analytics-normal-count").textContent = String(normalSamples.length);
-    document.querySelector("#analytics-edge-count").textContent = String(edgeSamples.length);
-    document.querySelector("#analytics-rejected-count").textContent = String(rejectedSamples.length);
+    document.querySelector("#analytics-normal-count").textContent = String(approved);
+    document.querySelector("#analytics-edge-count").textContent = String(pending);
+    document.querySelector("#analytics-rejected-count").textContent = String(rejected);
 
     const stageNames = ["Intake", "Read", "Validate", "Compare", "Decision", "Follow-up", "Finalize"];
     const stageRows = stageNames.map((label, index) => ({
@@ -671,31 +619,53 @@
       { label: "Rejected", value: rejected, color: "rejected" },
       { label: "Not decided", value: runs.length - decisions.length, color: "neutral" },
     ], runs.length);
+
     const monthRows = casesByMonth(runs);
     renderTrendChart(document.querySelector("#analytics-month-chart"), monthRows);
     const peakMonth = monthRows.reduce((best, row) => row.value > best.value ? row : best, { label: "—", value: 0 });
-    document.querySelector("#analytics-month-note").textContent = "Uneven intake over six months · peak " + peakMonth.label + " with " + peakMonth.value + " cases.";
+    document.querySelector("#analytics-month-note").textContent = "Intake across six months · peak " + peakMonth.label + " with " + peakMonth.value + " cases.";
     const countries = new Map();
     runs.forEach((run) => countries.set(run.country || "Unspecified", (countries.get(run.country || "Unspecified") || 0) + 1));
     const countryRows = Array.from(countries, ([label, value]) => ({ label, value, color: "purple" })).sort((a, b) => b.value - a.value).slice(0, 8);
     renderCountryChart(document.querySelector("#analytics-country-chart"), countryRows, runs.length);
     const leadingCountry = countryRows[0];
     document.querySelector("#analytics-country-note").textContent = leadingCountry
-      ? leadingCountry.label + " leads with " + leadingCountry.value + " cases; the mix is intentionally uneven."
+      ? leadingCountry.label + " leads with " + leadingCountry.value + " cases across the recorded portfolio."
       : "Regional mix across the saved portfolio.";
-    renderEdgeCaseWalkthrough(edgeSamples);
+    renderCountryOutcomeChart(document.querySelector("#analytics-country-outcomes"), runs);
 
-    const reviewSignals = reviewChecks.length;
-    document.querySelector("#analytics-review-signal-count").textContent = String(reviewSignals);
+    const reasonRows = rejectionReasonRows(rejectedRuns);
+    const reasonChart = document.querySelector("#analytics-rejection-reasons");
+    if (reasonRows.length) {
+      const maxReasonCount = Math.max(...reasonRows.map((row) => row.value), 1);
+      reasonChart.innerHTML = reasonRows.map((row) => {
+        const width = Math.round((row.value / maxReasonCount) * 100);
+        const share = rejected ? Math.round((row.value / rejected) * 100) : 0;
+        return `<div class="rejection-reason-row"><div class="analytics-bar-label"><span>${escapeHtml(row.label)}</span><strong>${row.value} <small>${share}%</small></strong></div><div class="analytics-track"><span class="rejected" style="width:${width}%"></span></div></div>`;
+      }).join("") + `<p class="rejection-reason-note">${rejected} decisions were recorded by reviewers. None were rejected automatically.</p>`;
+    } else {
+      reasonChart.innerHTML = '<div class="analytics-empty">No rejected decisions are recorded yet.</div>';
+    }
+
+    const orderedRejected = rejectedRuns.slice().sort((a, b) => new Date(b.decision.decidedAt) - new Date(a.decision.decidedAt));
+    document.querySelector("#analytics-rejection-rows").innerHTML = orderedRejected.map((run) => {
+      const category = run.decision.reasonCategory || run.rejectionCategory || "Other reviewer reason";
+      const reason = run.decision.overrideReason || run.reviewerReason || run.decision.reason;
+      return `<tr><td><div class="vendor-cell"><span class="vendor-avatar">${escapeHtml(initials(run.legalName || "V"))}</span><span>${escapeHtml(run.legalName)}</span></div><span class="analytics-run-code">${escapeHtml(run.id)}</span></td><td>${escapeHtml(run.country || "—")}</td><td><span class="reason-category-pill">${escapeHtml(category)}</span></td><td class="analytics-reviewer-reason">${escapeHtml(reason)}</td><td>${escapeHtml(shortDate(run.decision.decidedAt))}</td><td><button class="row-action" type="button" data-open-run="${escapeHtml(run.id)}">Details</button></td></tr>`;
+    }).join("");
+    document.querySelector("#analytics-rejection-count").textContent = rejected + " rejected case" + (rejected === 1 ? "" : "s");
+    document.querySelector(".analytics-rejection-table").classList.toggle("hidden", rejected === 0);
+    document.querySelector("#analytics-rejection-rows").closest(".table-wrap").classList.toggle("hidden", rejected === 0);
+
     const followUps = runs.filter((run) => run.followUp?.required).length;
     const health = [
-      ["Open review signals", String(reviewSignals), "Completeness and comparison checks marked for review"],
+      ["Open review signals", String(reviewChecks.length), "Completeness and comparison checks in active cases"],
+      ["Rejection rate", rejectionRate + "%", rejected + " human-reviewed outcomes out of " + finalOutcomes + " final decisions"],
       ["Follow-up drafts", String(followUps), "Editable drafts saved locally; none are sent"],
-      ["Finalized cases", String(completed), "Decision and audit history recorded"],
+      ["Document coverage", docCoverage + "%", documentComplete + " cases have all three document types"],
     ];
     document.querySelector("#analytics-health-grid").innerHTML = health.map(([label, value, detail]) => '<article class="health-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong><small>' + escapeHtml(detail) + '</small></article>').join("");
   }
-
   function renderOutputs() {
     const runs = readRuns();
     const decisions = runs.filter((run) => run.decision).sort((a, b) => new Date(b.decision.decidedAt) - new Date(a.decision.decidedAt));
@@ -721,7 +691,7 @@
     document.querySelector("#output-rows").innerHTML = decisions.map((run) => {
       const followUp = !run.followUp ? (run.decision.status === "Approved" ? "Not required yet" : "Draft not prepared")
         : run.followUp.required ? "Draft saved · not sent" : "Not required";
-      return '<tr><td><div class="vendor-cell"><span class="vendor-avatar">' + escapeHtml(initials(run.legalName || "V")) + '</span><span>' + escapeHtml(run.legalName) + '</span>' + (run.demoCase ? '<span class="demo-row-tag">SAMPLE</span>' : "") + '</div></td>'
+      return '<tr><td><div class="vendor-cell"><span class="vendor-avatar">' + escapeHtml(initials(run.legalName || "V")) + '</span><span>' + escapeHtml(run.legalName) + '</span></div></td>'
         + '<td><span class="status-badge ' + statusClass(run.decision.status) + '"><i></i>' + escapeHtml(run.decision.status) + '</span></td>'
         + '<td class="output-reason">' + escapeHtml(run.decision.reason) + '</td><td>' + escapeHtml(followUp) + '</td>'
         + '<td>' + escapeHtml(shortDate(run.decision.decidedAt)) + '</td><td><button class="row-action" type="button" data-open-run="' + escapeHtml(run.id) + '">Details</button></td></tr>';
@@ -1307,13 +1277,13 @@
         ? "Pending review"
         : run.demoKind === "rejected"
           ? "Reviewer-recorded rejection"
-          : "Baseline example";
+          : "Portfolio record";
       const response = run.demoKind === "edge"
         ? "Recommended handling: " + (scenario?.handling || "Review the flagged evidence and keep the case open until resolved.")
         : run.demoKind === "rejected"
-          ? "This is a human reviewer override with a saved reason; the system does not reject cases automatically."
-          : "This is a fictional baseline record processed by the prototype rules.";
-      demoBanner.textContent = resultLabel + ": " + run.demoScenarioLabel + ". " + response + " Evidence and stage results are simulated; no source files are attached.";
+          ? "A reviewer recorded this rejection and its reason; the system does not reject cases automatically."
+          : "This fictional portfolio record passed the configured prototype rules.";
+      demoBanner.textContent = "Fictional portfolio record · " + run.demoScenarioLabel + ". " + response + " Evidence and stage results are illustrative; no source files are attached.";
     } else {
       demoBanner.textContent = "";
     }
@@ -1391,7 +1361,7 @@
     status.textContent = extraction.documents.length
       ? `${readCount} of ${extraction.documents.length} document${extraction.documents.length === 1 ? "" : "s"} readable · ${fullDate(extraction.processedAt)}`
       : `No documents attached · ${fullDate(extraction.processedAt)}`;
-    button.innerHTML = run.demoCase ? "Synthetic evidence" : 'Read again <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>';
+    button.innerHTML = run.demoCase ? "Portfolio evidence" : 'Read again <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>';
     button.disabled = Boolean(run.demoCase);
     if (run.demoCase) status.textContent = `${readCount} synthetic evidence record${readCount === 1 ? "" : "s"} shown; no files attached.`;
     results.innerHTML = extraction.documents.length ? extraction.documents.map((doc) => {
@@ -2343,11 +2313,7 @@
     if (event.target === dialog) dialog.close();
   });
 
-  document.querySelector("#load-normal-demo").addEventListener("click", () => loadNormalDemoDataset());
-  document.querySelector("#load-edge-demo").addEventListener("click", loadEdgeDemoDataset);
-  document.querySelector("#load-rejected-demo").addEventListener("click", loadRejectedDemoDataset);
-  document.querySelector("#clear-demo-data").addEventListener("click", clearDemoDataset);
-  document.querySelector("#theme-toggle").addEventListener("click", () => {
+          document.querySelector("#theme-toggle").addEventListener("click", () => {
     const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     applyTheme(nextTheme, true);
   });

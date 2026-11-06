@@ -1282,3 +1282,63 @@ body { background: #edf3f4; }
   .exception-case-grid { grid-template-columns: 1fr; gap: 9px; }
   .exception-case-card { padding: 12px; }
 }
+
+/* Expanded portfolio analytics: regional outcomes and accountable decisions. */
+.analytics-portfolio-facts { margin-top: 13px; }
+.analytics-health .health-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.country-outcome-chart { display: grid; gap: 15px; margin-top: 17px; }
+.country-outcome-row { min-width: 0; display: grid; grid-template-columns: minmax(92px,120px) minmax(0,1fr) 82px; align-items: center; gap: 10px; }
+.country-outcome-label { min-width: 0; display: grid; gap: 3px; }
+.country-outcome-label strong { overflow: hidden; color: #3e505b; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.country-outcome-label span { color: #87959b; font-size: 10px; }
+.country-outcome-track { min-width: 4px; height: 16px; display: flex; overflow: hidden; border-radius: 9px; background: #eef2f2; transition: width .3s ease; }
+.country-outcome-segment { min-width: 0; height: 100%; }
+.country-outcome-segment.approved { background: #42a985; }
+.country-outcome-segment.pending { background: #e0aa50; }
+.country-outcome-segment.rejected { background: #cc7168; }
+.country-outcome-segment.undecided { background: #aab6bd; }
+.country-outcome-counts { display: flex; justify-content: flex-end; gap: 8px; font-size: 10px; font-weight: 800; }
+.country-outcome-counts .approved, .country-outcome-legend .approved { color: #338269; }
+.country-outcome-counts .pending, .country-outcome-legend .pending { color: #9a701f; }
+.country-outcome-counts .rejected, .country-outcome-legend .rejected { color: #ad5750; }
+.country-outcome-legend { display: flex; flex-wrap: wrap; gap: 14px; padding-top: 10px; border-top: 1px solid #edf0f1; font-size: 10px; font-weight: 700; }
+.rejection-reason-chart { display: grid; gap: 13px; margin-top: 17px; }
+.rejection-reason-row { display: grid; gap: 6px; }
+.rejection-reason-row .analytics-bar-label strong { color: #a9504a; }
+.rejection-reason-row .analytics-bar-label small { padding-left: 4px; color: #8b969b; font-size: 10px; font-weight: 600; }
+.rejection-reason-note { padding-top: 10px; margin: 0; border-top: 1px solid #edf0f1; color: #78878d; font-size: 11px; line-height: 1.5; }
+.analytics-empty { padding: 20px 0; color: #859197; font-size: 12px; }
+.analytics-rejection-panel { padding: 16px; margin: 13px 0; }
+.analytics-rejection-table { width: 100%; min-width: 900px; border-collapse: collapse; }
+.analytics-rejection-table th { padding: 10px; border-bottom: 1px solid #e8edef; color: #788992; font-size: 10px; font-weight: 800; letter-spacing: .45px; text-align: left; white-space: nowrap; }
+.analytics-rejection-table td { padding: 11px 10px; border-bottom: 1px solid #edf0f1; color: #5b6973; font-size: 12px; vertical-align: top; }
+.analytics-rejection-table tbody tr:hover { background: #f7faf9; }
+.analytics-rejection-table .vendor-cell { min-width: 170px; }
+.analytics-rejection-table .vendor-cell > span:last-child { overflow: visible; text-overflow: clip; white-space: normal; }
+.analytics-run-code { display: block; padding-left: 35px; margin-top: 3px; color: #8a969c; font-size: 10px; }
+.reason-category-pill { display: inline-flex; padding: 4px 7px; border: 1px solid #f0d9d6; border-radius: 15px; color: #9e514a; background: #fff7f5; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.analytics-reviewer-reason { min-width: 330px; max-width: 520px; line-height: 1.45; }
+:root[data-theme="dark"] .country-outcome-label strong { color: #e3edf2; }
+:root[data-theme="dark"] .country-outcome-label span,
+:root[data-theme="dark"] .country-outcome-legend,
+:root[data-theme="dark"] .rejection-reason-note,
+:root[data-theme="dark"] .analytics-empty,
+:root[data-theme="dark"] .analytics-rejection-table td,
+:root[data-theme="dark"] .analytics-run-code { color: #bac8d1; }
+:root[data-theme="dark"] .country-outcome-track { background: #344451; }
+:root[data-theme="dark"] .country-outcome-legend { border-color: #394b5b; }
+:root[data-theme="dark"] .rejection-reason-note { border-color: #394b5b; }
+:root[data-theme="dark"] .analytics-rejection-table th { border-color: #394b5b; color: #bac8d1; }
+:root[data-theme="dark"] .analytics-rejection-table td { border-color: #354653; }
+:root[data-theme="dark"] .analytics-rejection-table tbody tr:hover { background: #243542; }
+:root[data-theme="dark"] .reason-category-pill { border-color: #694447; color: #ffc1ba; background: #34292f; }
+@media (max-width: 900px) {
+  .analytics-health .health-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 680px) {
+  .country-outcome-row { grid-template-columns: minmax(75px,94px) minmax(0,1fr) 64px; gap: 6px; }
+  .country-outcome-label strong { font-size: 10px; }
+  .country-outcome-label span, .country-outcome-counts { font-size: 9px; }
+  .analytics-health .health-grid { grid-template-columns: 1fr 1fr; }
+  .analytics-rejection-panel { padding: 11px; }
+}

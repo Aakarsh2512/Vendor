@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <div class="app-shell">
@@ -117,7 +117,7 @@
           </section>
 
           <section class="view hidden" id="new-view" aria-labelledby="page-title">
-            <div class="hosted-demo-warning hidden" id="hosted-demo-warning" role="status"><strong>Public presentation site</strong><span>Use fictional vendor details and sample files only. Case records stay in this browser; uploaded files are sent to this demo server for text reading and are not saved by the app.</span></div>
+            <div class="hosted-demo-warning hidden" id="hosted-demo-warning" role="status"><strong>Public presentation site</strong><span>Use fictional vendor details and files only. Case records stay in this browser; uploaded files are sent to this demo server for text reading and are not saved by the app.</span></div>
             <div class="intake-layout">
               <form class="panel intake-panel" id="submission-form">
                 <div class="panel-heading">
@@ -264,54 +264,40 @@
           </section>
 
           <section class="view hidden" id="analytics-view" aria-labelledby="analytics-title">
-            <details class="panel demo-data-panel demo-data-tools" id="demo-data-panel" aria-labelledby="demo-data-title">
-              <summary class="demo-data-summary">
-                <span class="demo-data-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16M6.5 16V9m5 7V4m5 12v-5"/><circle cx="6.5" cy="7" r="1.5"/><circle cx="11.5" cy="2.5" r="1.5"/><circle cx="16.5" cy="9" r="1.5"/></svg></span>
-                <span class="demo-data-summary-copy"><span class="section-eyebrow">PRESENTATION DATA</span><strong id="demo-data-title">Manage sample cases</strong><small id="demo-data-status" aria-live="polite">100 baseline · 4 pending · 8 rejected</small></span>
-                <span class="demo-data-summary-action">Sample controls <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 8 5 5 5-5"/></svg></span>
-              </summary>
-              <div class="demo-data-actions"><button class="button-primary compact" id="load-normal-demo" type="button">Load baseline</button><button class="button-secondary" id="load-edge-demo" type="button" disabled>Add pending</button><button class="button-secondary rejected-demo-button" id="load-rejected-demo" type="button" disabled>Add rejected</button><button class="demo-clear-button" id="clear-demo-data" type="button" disabled>Reset samples</button></div>
-              <p class="demo-data-note">Fictional samples. Manual cases are preserved.</p>
-            </details>
             <div class="analytics-kpis">
-              <article class="overview-metric"><span>TOTAL CASES</span><strong id="analytics-total">0</strong><small>All recorded intake runs</small></article>
-              <article class="overview-metric"><span>ACTIVE CASES</span><strong id="analytics-active">0</strong><small>Not yet finalized</small></article>
-              <article class="overview-metric"><span>APPROVAL RATE</span><strong id="analytics-approval-rate">0%</strong><small>Of recorded decisions</small></article>
-              <article class="overview-metric"><span>DOC COVERAGE</span><strong id="analytics-doc-coverage">0%</strong><small>Cases with all three document types</small></article>
+              <article class="overview-metric"><span>TOTAL CASES</span><strong id="analytics-total">0</strong><small>Across the recorded portfolio</small></article>
+              <article class="overview-metric"><span>APPROVAL RATE</span><strong id="analytics-approval-rate">0%</strong><small>Of final decisions</small></article>
+              <article class="overview-metric"><span>NEEDS REVIEW</span><strong id="analytics-active">0</strong><small>Cases still requiring action</small></article>
+              <article class="overview-metric"><span>REJECTED</span><strong id="analytics-rejected-kpi">0</strong><small>Human reviewer decisions</small></article>
             </div>
             <section class="panel analytics-insight-panel" aria-labelledby="analytics-insight-heading" aria-live="polite">
-              <div class="analytics-insight-heading"><div><span class="section-eyebrow">PORTFOLIO TAKEAWAY</span><h2 id="analytics-insight-heading">What the numbers say</h2><p id="analytics-insight-summary">Add cases to see a summary of outcomes and open work.</p></div><span class="insight-status" id="analytics-insight-status">NO CASES</span></div>
+              <div class="analytics-insight-heading"><div><span class="section-eyebrow">PORTFOLIO TAKEAWAY</span><h2 id="analytics-insight-heading">What the numbers say</h2><p id="analytics-insight-summary">Add cases to see outcomes and open work.</p></div><span class="insight-status" id="analytics-insight-status">NO CASES</span></div>
               <div class="analytics-insight-grid">
                 <article><span>DECISION MIX</span><strong id="analytics-insight-decisions">0 recorded</strong><small id="analytics-insight-decision-note">No decisions recorded yet</small></article>
-                <article><span>TOP REVIEW SIGNAL</span><strong id="analytics-insight-top-signal">None</strong><small id="analytics-insight-signal-note">No open review flags</small></article>
+                <article><span>TOP OPEN SIGNAL</span><strong id="analytics-insight-top-signal">None</strong><small id="analytics-insight-signal-note">No open review flags</small></article>
                 <article><span>WORK CLOSED</span><strong id="analytics-insight-closed">0 / 0</strong><small id="analytics-insight-closed-note">Finalized cases</small></article>
                 <article><span>DOCUMENT COVERAGE</span><strong id="analytics-insight-docs">0%</strong><small id="analytics-insight-doc-note">Cases with all three types</small></article>
               </div>
             </section>
-            <div class="analytics-demo-facts" aria-label="Presentation dataset facts">
-              <article><span>BASELINE CASES</span><strong id="analytics-normal-count">0</strong><small>Uneven country mix</small></article>
-              <article><span>PENDING EXAMPLES</span><strong id="analytics-edge-count">0</strong><small>Need review or follow-up</small></article>
-              <article><span>REVIEWER REJECTIONS</span><strong id="analytics-rejected-count">0</strong><small>Manual decisions with reasons</small></article>
-              <article><span>OPEN REVIEW SIGNALS</span><strong id="analytics-review-signal-count">0</strong><small>Across saved cases</small></article>
+            <div class="analytics-demo-facts analytics-portfolio-facts" aria-label="Portfolio facts">
+              <article><span>APPROVED</span><strong id="analytics-normal-count">0</strong><small>Rule based; configured checks passed</small></article>
+              <article><span>PENDING</span><strong id="analytics-edge-count">0</strong><small>Awaiting review or clarification</small></article>
+              <article><span>REVIEWER REJECTIONS</span><strong id="analytics-rejected-count">0</strong><small>Recorded with a reason</small></article>
+              <article><span>DOCUMENT COVERAGE</span><strong id="analytics-doc-coverage">0%</strong><small>All three document types attached</small></article>
             </div>
-            <section class="panel analytics-health analytics-edge-panel hidden" id="analytics-edge-panel">
-              <div class="section-heading"><div><span class="section-eyebrow">EDGE-CASE WALKTHROUGH</span><h2>Four cases that need a reviewer</h2><p>Open a case to see the signal, evidence, and recommended next step.</p></div><button class="text-action" type="button" data-view="outputs">View rejection decisions</button></div>
-              <div class="exception-case-grid" id="analytics-edge-cases"></div>
-              <p class="exception-demo-note">The four examples stay Pending. Rejections in Decision outputs are recorded human overrides, not automatic outcomes.</p>
-            </section>
             <div class="analytics-columns">
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">WORKFLOW FLOW</span><h2 id="analytics-title">Cases by stage</h2><p>Count of cases that reached each stage.</p></div></div>
+                <div class="section-heading"><div><span class="section-eyebrow">WORKFLOW FLOW</span><h2 id="analytics-title">Cases by stage</h2><p>Count of cases that reached each workflow stage.</p></div></div>
                 <div class="analytics-bars" id="analytics-stage-bars"></div>
               </section>
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">DECISION OUTPUT</span><h2>Portfolio disposition</h2><p>Case mix, including unresolved and reviewer-rejected outcomes.</p></div></div>
+                <div class="section-heading"><div><span class="section-eyebrow">DECISION OUTPUT</span><h2>Portfolio disposition</h2><p>Approved, pending, rejected, and undecided cases.</p></div></div>
                 <div id="analytics-outcome-chart" class="outcome-chart"></div>
               </section>
             </div>
             <div class="analytics-columns analytics-detail-columns">
               <section class="panel analytics-panel">
-                <div class="section-heading"><div><span class="section-eyebrow">INTAKE TREND</span><h2>Cases received by month</h2><p id="analytics-month-note">Monthly volume across the latest six months.</p></div></div>
+                <div class="section-heading"><div><span class="section-eyebrow">INTAKE TREND</span><h2>Cases received by month</h2><p id="analytics-month-note">Monthly intake across the latest six months.</p></div></div>
                 <div id="analytics-month-chart" class="trend-chart"></div>
               </section>
               <section class="panel analytics-panel">
@@ -319,13 +305,32 @@
                 <div id="analytics-country-chart" class="country-chart"></div>
               </section>
             </div>
+            <div class="analytics-columns analytics-detail-columns">
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">REGIONAL QUALITY</span><h2>Outcome mix by country</h2><p>Compare approvals, pending work, and reviewer rejections by region.</p></div></div>
+                <div id="analytics-country-outcomes" class="country-outcome-chart"></div>
+              </section>
+              <section class="panel analytics-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">REVIEWER OVERRIDES</span><h2>Reasons recorded for rejection</h2><p>Grouped reasons from human decisions; the system never rejects automatically.</p></div></div>
+                <div id="analytics-rejection-reasons" class="rejection-reason-chart"></div>
+              </section>
+            </div>
+            <section class="panel analytics-rejection-panel">
+              <div class="section-heading"><div><span class="section-eyebrow">DECISION DETAIL</span><h2>Recent reviewer rejections</h2><p>Each outcome includes the reason recorded by the analyst.</p></div><button class="text-action" type="button" data-view="outputs">Open decision register</button></div>
+              <div class="table-wrap">
+                <table class="analytics-rejection-table">
+                  <thead><tr><th>VENDOR</th><th>COUNTRY</th><th>REASON CATEGORY</th><th>REVIEWER REASON</th><th>DATE</th><th></th></tr></thead>
+                  <tbody id="analytics-rejection-rows"></tbody>
+                </table>
+              </div>
+              <div class="table-foot"><span>Human reviewer overrides</span><span id="analytics-rejection-count">0 rejected cases</span></div>
+            </section>
             <section class="panel analytics-health">
-              <div class="section-heading"><div><span class="section-eyebrow">OPERATIONS SNAPSHOT</span><h2>Review workload</h2><p>Signals from the locally recorded case history.</p></div></div>
+              <div class="section-heading"><div><span class="section-eyebrow">OPERATIONS SNAPSHOT</span><h2>Review workload</h2><p>Signals from the saved case history.</p></div></div>
               <div class="health-grid" id="analytics-health-grid"></div>
             </section>
-            <p class="queue-note"><span class="info-mark">i</span> Analytics use only records saved in this browser. A deployed shared dashboard needs a shared database.</p>
+            <p class="queue-note"><span class="info-mark">i</span> Portfolio records are fictional. Rejections are reviewer overrides with reasons, never automatic decisions. Analytics use the cases saved in this browser.</p>
           </section>
-
           <section class="view hidden" id="outputs-view" aria-labelledby="outputs-title">
             <div class="output-kpis">
               <article class="overview-metric"><span>DECIDED CASES</span><strong id="outputs-total">0</strong><small>Decision recorded</small></article>
@@ -493,7 +498,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=2"></script>
-    <script src="demo-dataset.js?v=4"></script>
-    <script src="app.js?v=14"></script>
+    <script src="demo-dataset.js?v=5"></script>
+    <script src="app.js?v=15"></script>
   </body>
 </html>
