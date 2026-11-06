@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=17" />
+    <link rel="stylesheet" href="styles.css?v=18" />
   </head>
   <body>
     <div class="app-shell">
@@ -35,6 +35,10 @@
           <button class="nav-item" type="button" data-view="queue">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="15.5" width="16" height="4" rx="1"/></svg>
             <span>Review queue</span><span class="nav-count" id="nav-count">0</span>
+          </button>
+          <button class="nav-item" type="button" data-view="exceptions">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3L12 3.5Z"/><path d="M12 9v5m0 3h.01"/></svg>
+            <span>Exception desk</span><span class="nav-count" id="exception-nav-count">0</span>
           </button>
           <button class="nav-item" type="button" data-view="analytics">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V12m5 7.5V5m5 14.5V9m5 10.5V3.5"/></svg>
@@ -263,6 +267,30 @@
             <div class="queue-note"><span class="info-mark">i</span> This prototype records intake details and attachments locally. Automated document checks are added in later stages.</div>
           </section>
 
+          <section class="view hidden" id="exceptions-view" aria-labelledby="exceptions-title">
+            <section class="panel exception-hero">
+              <div class="exception-hero-copy"><span class="section-eyebrow">REVIEWER WORKBENCH</span><h2 id="exceptions-title">Resolve exceptions with evidence.</h2><p>See why a case was held, collect the right proof, rerun checks, and keep the final call with the analyst.</p></div>
+              <div class="exception-hero-mark" aria-hidden="true"><svg viewBox="0 0 72 72"><path d="M36 7 64 58H8L36 7Z"/><path d="M36 25v15m0 8h.1"/></svg></div>
+            </section>
+            <div class="exception-summary-grid">
+              <article><span>OPEN EXCEPTIONS</span><strong id="exception-total">0</strong><small>Cases waiting for review</small></article>
+              <article><span>EVIDENCE GAPS</span><strong id="exception-evidence-count">0</strong><small>Missing or unreadable files</small></article>
+              <article><span>DATA MISMATCHES</span><strong id="exception-mismatch-count">0</strong><small>Tax, bank, or source conflicts</small></article>
+              <article><span>DUPLICATE FLAGS</span><strong id="exception-duplicate-count">0</strong><small>Compare with the linked record</small></article>
+            </div>
+            <div class="exception-desk-layout">
+              <section class="panel exception-list-panel">
+                <div class="section-heading"><div><span class="section-eyebrow">PRIORITIZED REVIEW</span><h2>Cases needing a human check</h2><p>Open a case to add evidence and record your adjudication.</p></div><span class="section-count" id="exception-list-count">0</span></div>
+                <div class="exception-case-grid" id="exceptions-grid"></div>
+              </section>
+              <aside class="panel exception-process-panel">
+                <span class="section-eyebrow">SAFE RESOLUTION LOOP</span><h2>One clear path for each exception</h2>
+                <ol class="exception-process-list"><li><b>1</b><span><strong>Inspect</strong><small>Read the flag and source evidence.</small></span></li><li><b>2</b><span><strong>Collect</strong><small>Attach vendor PDFs or supporting files.</small></span></li><li><b>3</b><span><strong>Rerun</strong><small>Recheck completeness and comparisons.</small></span></li><li><b>4</b><span><strong>Decide</strong><small>Record the outcome and reason as reviewer.</small></span></li></ol>
+                <p class="exception-demo-note">Files are attached to the case in this browser. Text PDFs, DOCX, TXT, and CSV can be read; scanned PDFs need manual review because free OCR is not included.</p>
+              </aside>
+            </div>
+          </section>
+
           <section class="view hidden" id="analytics-view" aria-labelledby="analytics-title">
             <div class="analytics-kpis">
               <article class="overview-metric"><span>TOTAL CASES</span><strong id="analytics-total">0</strong><small>Across the recorded portfolio</small></article>
@@ -465,6 +493,18 @@
         <div id="comparison-results" class="comparison-results"></div>
         <p class="extraction-method"><span class="info-mark">i</span> A possible duplicate or mismatch is a review signal. This stage does not reject a vendor or change the source documents.</p>
       </section>
+      <section class="exception-resolution-panel hidden" id="exception-resolution" aria-labelledby="exception-resolution-title">
+        <div class="exception-resolution-heading"><div><span class="extraction-kicker">EXCEPTION DESK</span><h3 id="exception-resolution-title">Reviewer resolution</h3><p id="exception-resolution-summary"></p></div><span class="exception-resolution-pill" id="exception-resolution-status">OPEN</span></div>
+        <div class="exception-resolution-guidance" id="exception-resolution-guidance"></div>
+        <div class="exception-evidence-uploader">
+          <div><strong>Add vendor evidence</strong><small>Attach a PDF or text document to this case, then reread and rerun Stage 3 and Stage 4.</small></div>
+          <label class="exception-upload-kind" for="exception-upload-kind">Document type<select id="exception-upload-kind"><option>Bank proof</option><option>Tax document</option><option>Registration document</option><option>Bank relationship evidence</option><option>Entity separation evidence</option><option>Other supporting evidence</option></select></label>
+          <label class="exception-file-picker" for="exception-upload-file"><input id="exception-upload-file" type="file" accept=".pdf,.docx,.txt,.csv,.png,.jpg,.jpeg,application/pdf" /><span id="exception-upload-name">Choose a supporting file</span><b>Browse</b></label>
+          <button class="button-primary compact" id="exception-upload-button" type="button" disabled>Attach and rerun checks</button>
+        </div>
+        <div class="exception-workspace" id="exception-workspace"></div>
+        <p class="extraction-method"><span class="info-mark">i</span> Evidence and notes are recorded in the case timeline. A suggested match or format check is not an external registry verification; the reviewer makes the decision.</p>
+      </section>
       <section class="decision-panel" id="decision-panel">
         <div class="decision-heading">
           <div><span class="extraction-kicker">STAGE 05</span><h3>Make onboarding decision</h3><p id="decision-status">Complete Stage 4 comparison first.</p></div>
@@ -498,7 +538,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=2"></script>
-    <script src="demo-dataset.js?v=5"></script>
-    <script src="app.js?v=15"></script>
+    <script src="demo-dataset.js?v=6"></script>
+    <script src="app.js?v=16"></script>
   </body>
 </html>

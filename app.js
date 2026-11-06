@@ -186,10 +186,12 @@
       name: id + "-" + spec.suffix + ".txt",
       type: "text/plain",
       size: 0,
+      synthetic: true,
     }));
     const extractedDocuments = includedDocuments.map((spec) => ({
       kind: spec.kind,
       filename: id + "-" + spec.suffix + ".txt",
+      synthetic: true,
       contentType: "text/plain",
       status: "read",
       message: "Illustrative portfolio evidence; no source file is attached.",
@@ -389,8 +391,88 @@
     document.querySelector("table").classList.toggle("hidden", runs.length === 0);
     renderOverview();
     renderAnalytics();
+    renderExceptionDesk();
     renderOutputs();
     renderCopilotSummary();
+  }
+
+  function exceptionSignals(run) {
+    return (run.validation?.checks || []).concat(run.comparison?.checks || []).filter((check) => check.state === "review");
+  }
+
+  function exceptionCategory(run) {
+    const scenario = run.demoScenario;
+    if (scenario === "missing_bank_proof") return "evidence";
+    if (scenario === "invalid_tax_id") return "tax";
+    if (scenario === "bank_name_mismatch") return "bank";
+    if (scenario === "possible_duplicate") return "duplicate";
+    const labels = exceptionSignals(run).map((check) => check.label.toLowerCase()).join(" ");
+    if (/duplicate/.test(labels)) return "duplicate";
+    if (/bank|account holder/.test(labels)) return "bank";
+    if (/tax|registration id|format/.test(labels)) return "tax";
+    return /document|readab|support/.test(labels) ? "evidence" : "other";
+  }
+
+  function exceptionDescription(run) {
+    const category = exceptionCategory(run);
+    const byCategory = {
+      evidence: attachedEvidence(run, "Bank proof")
+        ? "A current bank-proof file is attached. Confirm it is readable and inspect the refreshed Stage 3 and Stage 4 results before deciding."
+        : "A required bank-proof file is missing. Keep the case open until the vendor's evidence is attached and checked.",
+      tax: run.taxIdCorrection
+        ? "The reviewer applied " + run.taxIdCorrection.value + " from both replacement source documents. Inspect the refreshed checks before recording the decision."
+        : "The submitted tax ID needs correction. Compare the tax and registration sources, then apply only a matching, country-shaped value with a reviewer note.",
+      bank: run.bankRelationshipReview
+        ? "The reviewer recorded an account relationship based on " + run.bankRelationshipReview.evidenceName + ". The submitted names remain unchanged; inspect the comparison and reviewer note."
+        : "The bank holder differs from the registered name. Attach current bank proof and evidence of the account relationship before recording an analyst attestation.",
+      duplicate: run.duplicateReview?.outcome === "confirmed_duplicate"
+        ? "The reviewer confirmed a duplicate. Inspect the linked case and save the reasoned Stage 5 rejection."
+        : run.duplicateReview?.outcome === "not_duplicate"
+          ? "The reviewer cleared the possible duplicate using " + run.duplicateReview.evidenceName + ". Inspect the note and refreshed comparison before deciding."
+          : "A saved case shares identity details. Inspect the linked record; confirm a duplicate or clear the match only with separation evidence.",
+      other: exceptionSignals(run)[0]?.detail || "Review the flagged item, gather supporting evidence, and rerun the checks.",
+    };
+    return byCategory[category];
+  }
+
+  function openExceptionRuns(runs = readRuns()) {
+    return runs.filter((run) => !run.finalizedAt && (
+      run.demoKind === "edge"
+      || exceptionSignals(run).length > 0
+      || run.decision?.status === "Pending"
+      || /needs review|needs attention|comparison needs review/i.test(run.status || "")
+    ));
+  }
+
+  function renderExceptionDesk() {
+    const runs = openExceptionRuns().sort((a, b) => {
+      const order = { evidence: 0, tax: 1, bank: 2, duplicate: 3, other: 4 };
+      return order[exceptionCategory(a)] - order[exceptionCategory(b)] || new Date(a.createdAt) - new Date(b.createdAt);
+    });
+    const counts = { evidence: 0, tax: 0, bank: 0, duplicate: 0 };
+    runs.forEach((run) => { const category = exceptionCategory(run); if (category in counts) counts[category] += 1; });
+    document.querySelector("#exception-nav-count").textContent = String(runs.length);
+    document.querySelector("#exception-total").textContent = String(runs.length);
+    document.querySelector("#exception-evidence-count").textContent = String(counts.evidence);
+    document.querySelector("#exception-mismatch-count").textContent = String(counts.tax + counts.bank);
+    document.querySelector("#exception-duplicate-count").textContent = String(counts.duplicate);
+    document.querySelector("#exception-list-count").textContent = String(runs.length);
+    const labels = { evidence: "Evidence gap", tax: "Tax ID correction", bank: "Bank ownership check", duplicate: "Possible duplicate", other: "Reviewer check" };
+    const signalsFor = (run) => exceptionSignals(run).map((check) => check.label).filter((label, index, list) => list.indexOf(label) === index);
+    document.querySelector("#exceptions-grid").innerHTML = runs.length
+      ? runs.map((run, index) => {
+        const category = exceptionCategory(run);
+        const signalLabels = signalsFor(run);
+        const signal = signalLabels[0] || (run.exceptionResolutionStatus?.startsWith("Checks clear") ? "Checks clear · decision required" : run.demoScenarioLabel || "Reviewer attention required");
+        const current = run.exceptionResolutionStatus || run.status || "Awaiting review";
+        return '<article class="exception-case-card">'
+          + '<div class="exception-case-top"><span class="exception-case-index">' + String(index + 1).padStart(2, "0") + ' · ' + escapeHtml(labels[category]) + '</span><span class="exception-case-status pending">' + escapeHtml(current) + '</span></div>'
+          + '<h3>' + escapeHtml(run.legalName) + '</h3><p class="exception-case-vendor"><span>' + escapeHtml(run.country) + '</span><small>' + escapeHtml(run.id) + '</small></p>'
+          + '<div class="exception-case-signal"><span>Current signal</span><strong>' + escapeHtml(signal) + '</strong><p>' + escapeHtml(exceptionDescription(run)) + '</p></div>'
+          + '<p class="exception-case-handling"><strong>Next safe action</strong>' + escapeHtml(category === "evidence" ? "Request the missing file, attach it, then rerun checks." : category === "tax" ? "Compare corrected tax and registration documents before applying an ID." : category === "bank" ? "Attach relationship proof and record the reviewer note." : category === "duplicate" ? "Inspect the linked case and record the duplicate adjudication." : "Open the case and resolve the highest priority review signal.") + '</p>'
+          + '<button class="button-secondary compact exception-case-open" type="button" data-open-run="' + escapeHtml(run.id) + '">Open resolution <span aria-hidden="true">→</span></button></article>';
+      }).join("")
+      : '<div class="exception-empty"><strong>No open exceptions.</strong><span>Cases with missing evidence or review signals will appear here.</span></div>';
   }
 
   function nextCaseAction(run) {
@@ -913,6 +995,7 @@
       overview: ["Operations overview", "See case volume, decisions, and next actions.", "WORKSPACE OVERVIEW"],
       new: ["Start a vendor review", "Record the vendor details and documents your team received.", "NEW REVIEW"],
       queue: ["Review queue", "Open a case to continue its checks, decision, or follow-up.", "CASE QUEUE"],
+      exceptions: ["Exception desk", "Resolve evidence gaps and mismatches with a traceable reviewer action.", "REVIEWER WORKBENCH"],
       analytics: ["Operations analytics", "Understand workflow progress, outcomes, and review workload.", "ANALYTICS"],
       outputs: ["Decision outputs", "Review outcomes, reasons, and follow-up state in one register.", "DECISION REGISTER"],
       copilot: ["Analyst Copilot", "Local help for packet review, country ID guidance, and prioritized case actions.", "COPILOT ASSISTANCE"],
@@ -1262,6 +1345,83 @@
     document.querySelector("#report-insight-summary").textContent = summary;
   }
 
+  function attachedEvidence(run, kind, filename) {
+    return (run.documents || []).some((item) => item.kind === kind && !item.synthetic && (!filename || item.name === filename));
+  }
+
+  function taxCorrectionPairs(run) {
+    const taxRule = taxIdRule(run.country);
+    if (!taxRule) return [];
+    const taxCandidates = extractedCandidates(run, "taxId", ["Tax document"])
+      .filter((field) => !field.synthetic && attachedEvidence(run, "Tax document", field.sourceName));
+    const registrationCandidates = extractedCandidates(run, "taxId", ["Registration document"])
+      .filter((field) => !field.synthetic && attachedEvidence(run, "Registration document", field.sourceName));
+    const pairs = [];
+    taxCandidates.forEach((tax) => registrationCandidates.forEach((registration) => {
+      const normalized = String(tax.value || "").trim().toUpperCase().replace(/[\s.-]/g, "");
+      if (!normalized || !taxRule.pattern.test(normalized) || normalizeComparable(tax.value) !== normalizeComparable(registration.value)) return;
+      if (pairs.some((pair) => normalizeComparable(pair.value) === normalizeComparable(tax.value))) return;
+      pairs.push({ value: tax.value, tax, registration });
+    }));
+    return pairs;
+  }
+
+  function renderExceptionResolution(run) {
+    const panel = document.querySelector("#exception-resolution");
+    const show = run.demoKind === "edge" || exceptionSignals(run).length > 0 || Boolean(run.duplicateReview || run.bankRelationshipReview || run.taxIdCorrection);
+    panel.classList.toggle("hidden", !show);
+    if (!show) return;
+    panel.dataset.runId = run.id;
+    const category = exceptionCategory(run);
+    const titles = { evidence: "Missing evidence", tax: "Tax ID correction", bank: "Bank account relationship", duplicate: "Possible duplicate", other: "Resolve review signal" };
+    const summaries = {
+      evidence: attachedEvidence(run, "Bank proof") ? "A bank-proof file is attached. Inspect its extracted text and confirm the refreshed completeness and comparison checks." : "Required bank proof is missing. A new vendor file must be attached before the completeness check can pass.",
+      tax: run.taxIdCorrection ? "The paired source value " + run.taxIdCorrection.value + " has been applied. Review the refreshed checks and record the Stage 5 outcome." : "The current ID fails the configured India syntax check. Replace both tax and registration evidence, then accept only an identical, correctly shaped ID from both sources.",
+      bank: run.bankRelationshipReview ? "Reviewer note recorded; submitted names were preserved. Inspect the comparison result before deciding." : "The bank proof names a different account holder. Preserve the submitted names and attach current bank proof plus related-entity evidence before recording an analyst attestation.",
+      duplicate: run.duplicateReview?.outcome === "confirmed_duplicate" ? "Duplicate confirmed by the reviewer. Stage 5 still requires an explicit reasoned decision." : run.duplicateReview?.outcome === "not_duplicate" ? "Distinct-entity review recorded with supporting evidence. Inspect the refreshed comparison before deciding." : "The local history has a matching vendor record. Inspect the linked case and record whether this is a true duplicate or a distinct entity supported by evidence.",
+      other: exceptionDescription(run),
+    };
+    document.querySelector("#exception-resolution-title").textContent = titles[category];
+    document.querySelector("#exception-resolution-summary").textContent = summaries[category];
+    document.querySelector("#exception-resolution-status").textContent = run.exceptionResolutionStatus || (run.finalizedAt ? "CLOSED" : run.decision?.status === "Pending" ? "PENDING" : "OPEN");
+    document.querySelector("#exception-resolution-guidance").textContent = exceptionDescription(run);
+    const uploadButton = document.querySelector("#exception-upload-button");
+    uploadButton.dataset.runId = run.id;
+    uploadButton.disabled = false;
+    document.querySelector("#exception-upload-file").value = "";
+    document.querySelector("#exception-upload-name").textContent = "Choose a supporting file";
+
+    let workspace = "";
+    if (category === "tax") {
+      const pairs = taxCorrectionPairs(run);
+      const pairCards = run.taxIdCorrection
+        ? '<div class="exception-resolution-record"><strong>Tax ID correction recorded</strong><p>' + escapeHtml(run.taxIdCorrection.value + " · " + run.taxIdCorrection.note) + '</p><small>Tax: ' + escapeHtml(run.taxIdCorrection.taxEvidenceName) + ' · Registration: ' + escapeHtml(run.taxIdCorrection.registrationEvidenceName) + '</small></div>'
+        : pairs.length
+        ? pairs.map((pair, index) => '<article class="exception-pair-card"><div><strong>' + escapeHtml(pair.value) + '</strong><span>Tax document: ' + escapeHtml(pair.tax.sourceName) + ' · Registration: ' + escapeHtml(pair.registration.sourceName) + '</span></div><button class="button-secondary compact" type="button" data-exception-action="apply-tax" data-pair-index="' + index + '">Apply paired value</button></article>').join("")
+        : '<div class="exception-empty-inline"><strong>No verified correction pair yet.</strong><span>Attach replacement Tax document and Registration document files. Both must contain the same country-shaped ID before it can be applied.</span></div>';
+      workspace = run.taxIdCorrection ? pairCards : '<div class="exception-action-block"><label>Reviewer note<textarea id="tax-correction-note" rows="2" maxlength="500" placeholder="Why do the replacement tax and registration documents support this correction?"></textarea></label>' + pairCards + '</div>';
+    } else if (category === "bank") {
+      const prior = run.bankRelationshipReview;
+      const hasEvidence = Boolean(attachedEvidence(run, "Bank proof") && (prior ? attachedEvidence(run, "Bank relationship evidence", prior.evidenceName) : attachedEvidence(run, "Bank relationship evidence")));
+      workspace = prior
+        ? '<div class="exception-resolution-record"><strong>Reviewer attestation recorded</strong><p>' + escapeHtml(prior.note) + '</p><small>Evidence: ' + escapeHtml(prior.evidenceName) + '</small></div>'
+        : '<div class="exception-action-block"><label>Reviewer note<textarea id="bank-relationship-note" rows="2" maxlength="500" placeholder="Explain what the attached evidence establishes about the account holder."></textarea></label><button class="button-primary compact" type="button" data-exception-action="confirm-bank" ' + (hasEvidence ? "" : "disabled") + '>Record relationship review and rerun comparison</button><small class="exception-action-hint">' + (hasEvidence ? "Current bank proof and relationship evidence are attached. Add your reasoning to continue." : "Attach both current Bank proof and a file typed as Bank relationship evidence before recording the analyst review.") + '</small></div>';
+    } else if (category === "duplicate") {
+      const review = run.duplicateReview;
+      if (review) {
+        workspace = '<div class="exception-resolution-record"><strong>' + (review.outcome === "confirmed_duplicate" ? "Duplicate confirmed by reviewer" : "Distinct entity confirmed by reviewer") + '</strong><p>' + escapeHtml(review.note) + '</p>' + (review.evidenceName ? '<small>Evidence: ' + escapeHtml(review.evidenceName) + '</small>' : "") + '</div>';
+      } else {
+        const hasEvidence = attachedEvidence(run, "Entity separation evidence");
+        workspace = '<div class="exception-action-block duplicate-review-actions"><label>Confirm duplicate — reviewer reason<textarea id="duplicate-confirm-note" rows="2" maxlength="500" placeholder="Explain why the linked records represent the same legal vendor."></textarea></label><button class="button-secondary compact" type="button" data-exception-action="confirm-duplicate">Confirm duplicate and prepare rejection</button><label>Clear as distinct — reviewer note<textarea id="duplicate-distinct-note" rows="2" maxlength="500" placeholder="Explain which evidence proves these are separate legal entities."></textarea></label><button class="button-secondary compact" type="button" data-exception-action="clear-duplicate" ' + (hasEvidence ? "" : "disabled") + '>Record distinct-entity review and rerun comparison</button><small class="exception-action-hint">' + (hasEvidence ? "Entity separation evidence is attached." : "To clear a match, first attach a file as Entity separation evidence.") + '</small></div>';
+      }
+    } else if (category === "evidence") {
+      workspace = '<div class="exception-action-block"><p>Ask the vendor for a clear bank proof naming the account holder. The PDF or text file can be attached above; after extraction, Stage 3 checks document coverage and Stage 4 compares the holder name.</p><button class="button-secondary compact" type="button" data-exception-action="prepare-followup" ' + (run.decision ? "" : "disabled") + '>Prepare vendor follow-up draft</button><small class="exception-action-hint">Draft only; the analyst reviews and sends it through the normal channel.</small></div>';
+    } else {
+      workspace = '<div class="exception-action-block"><p>Use the supporting-file control above, then inspect the source evidence and rerun the checks.</p></div>';
+    }
+    document.querySelector("#exception-workspace").innerHTML = workspace;
+  }
+
   function showRunDetails(runId) {
     const run = readRuns().find((item) => item.id === runId);
     if (!run) return;
@@ -1273,6 +1433,12 @@
     if (run.demoCase) {
       const scenario = DEMO_DATASET.edgeCases.concat(DEMO_DATASET.rejectedCases)
         .find((item) => item.scenario === run.demoScenario);
+      const attachedRealFileCount = (run.documents || []).filter((item) => !item.synthetic).length;
+      if (run.demoKind === "edge") {
+        demoBanner.textContent = "Review scenario · " + run.demoScenarioLabel + ". " + (attachedRealFileCount
+          ? attachedRealFileCount + " vendor evidence file(s) attached to this case; generated baseline fields remain visible for comparison."
+          : "Starts with illustrative baseline fields. Attach the vendor's source evidence below to drive the live reading and comparison flow.");
+      } else {
       const resultLabel = run.demoKind === "edge"
         ? "Pending review"
         : run.demoKind === "rejected"
@@ -1284,6 +1450,7 @@
           ? "A reviewer recorded this rejection and its reason; the system does not reject cases automatically."
           : "This fictional portfolio record passed the configured prototype rules.";
       demoBanner.textContent = "Fictional portfolio record · " + run.demoScenarioLabel + ". " + response + " Evidence and stage results are illustrative; no source files are attached.";
+      }
     } else {
       demoBanner.textContent = "";
     }
@@ -1301,7 +1468,7 @@
       : '<p class="dialog-doc-empty">No documents attached to this submission.</p>';
     if (run.demoCase) {
       [...document.querySelectorAll("#dialog-doc-list .dialog-doc-item span")].forEach((label, index) => {
-        label.textContent = docs[index].kind + " · Synthetic evidence record; no file attached";
+        if (docs[index].synthetic) label.textContent = docs[index].kind + " · Illustrative baseline record; no file attached";
       });
     }
     renderReportInsights(run);
@@ -1333,6 +1500,7 @@
     renderValidation(run);
     document.querySelector("#compare-button").dataset.runId = run.id;
     renderComparison(run);
+    renderExceptionResolution(run);
     document.querySelector("#decision-button").dataset.runId = run.id;
     renderDecision(run);
     document.querySelector("#followup-button").dataset.runId = run.id;
@@ -1541,7 +1709,7 @@
       .filter((document) => allowedKinds.includes(document.kind))
       .flatMap((document) => (document.fields || [])
         .filter((field) => field.key === fieldKey)
-        .map((field) => Object.assign({}, field, { sourceKind: document.kind, sourceName: document.filename })));
+        .map((field) => Object.assign({}, field, { sourceKind: document.kind, sourceName: document.filename, synthetic: Boolean(document.synthetic) })));
   }
 
   function evidenceLabel(candidate) {
@@ -1594,9 +1762,13 @@
       && normalizedDocumentNames.every((value) => value === normalizedLegal)
       && normalizedDocumentHolders.every((value) => value === normalizedHolders);
     const evidence = legalNames.concat(accountHolders).map(evidenceLabel).join(" | ");
+    const relationshipReview = run.bankRelationshipReview;
+    const relationshipEvidencePresent = relationshipReview && attachedEvidence(run, "Bank proof") && attachedEvidence(run, "Bank relationship evidence", relationshipReview.evidenceName) && String(relationshipReview.note || "").trim();
     const check = matches
       ? makeCheck("Registered name vs bank account holder", "pass", "The submitted names and extracted document names match after ignoring case and punctuation.")
-      : makeCheck("Registered name vs bank account holder", "review", "The registered business name and bank account holder differ. Confirm whether the difference is expected.");
+      : relationshipEvidencePresent
+        ? makeCheck("Registered name vs bank account holder", "pass", "The names differ. The reviewer recorded an authorized relationship based on " + relationshipReview.evidenceName + ": " + relationshipReview.note + " Submitted names remain unchanged.")
+        : makeCheck("Registered name vs bank account holder", "review", "The registered business name and bank account holder differ. Confirm whether the difference is expected.");
     check.evidence = evidence;
     return check;
   }
@@ -1659,11 +1831,20 @@
     const duplicateDetail = possibleDuplicates.length
       ? possibleDuplicates.map((item) => item.legalName + " (" + item.id + "; " + item.reasons.join(", ") + ")").join(" | ")
       : "No matching tax ID, legal name, or contact email was found in this browser's submission history.";
-    checks.push(makeCheck(
+    const distinctReview = run.duplicateReview?.outcome === "not_duplicate"
+      && attachedEvidence(run, "Entity separation evidence", run.duplicateReview.evidenceName)
+      && String(run.duplicateReview.note || "").trim();
+    const duplicateCheck = makeCheck(
       "Possible duplicate submission",
-      possibleDuplicates.length ? "review" : "pass",
-      duplicateDetail,
-    ));
+      possibleDuplicates.length && !distinctReview ? "review" : "pass",
+      distinctReview
+        ? "The reviewer cleared the local match as a distinct entity using " + run.duplicateReview.evidenceName + ": " + run.duplicateReview.note + " The original matching signals remain available below."
+        : run.duplicateReview?.outcome === "confirmed_duplicate"
+          ? "The reviewer confirmed this is a duplicate. Record the reasoned Stage 5 rejection; no automatic rejection was made. " + duplicateDetail
+          : duplicateDetail,
+    );
+    duplicateCheck.matches = possibleDuplicates;
+    checks.push(duplicateCheck);
     return checks;
   }
 
@@ -1691,9 +1872,10 @@
       const evidence = check.evidence
         ? '<blockquote class="comparison-evidence">' + escapeHtml(check.evidence) + '</blockquote>'
         : "";
+      const matchedCases = (check.matches || []).map((match) => '<button class="exception-match-link" type="button" data-open-run="' + escapeHtml(match.id) + '"><strong>' + escapeHtml(match.legalName) + '</strong><span>' + escapeHtml(match.id) + ' · ' + escapeHtml(match.reasons.join(", ")) + '</span></button>').join("");
       return '<article class="comparison-check ' + (check.state === "review" ? "review" : "pass") + '">'
         + '<div class="comparison-check-top"><strong>' + escapeHtml(check.label) + '</strong><span>' + (check.state === "review" ? "REVIEW" : "MATCH") + '</span></div>'
-        + '<p>' + escapeHtml(check.detail) + '</p>' + evidence + '</article>';
+        + '<p>' + escapeHtml(check.detail) + '</p>' + evidence + (matchedCases ? '<div class="exception-match-list"><strong>Linked cases</strong>' + matchedCases + '</div>' : "") + '</article>';
     }).join("");
     results.innerHTML = '<div class="comparison-summary ' + (reviewCount ? "review" : "") + '">'
       + '<strong>' + (reviewCount ? "Review mismatches or possible duplicates" : "No mismatches found in the available evidence") + '</strong>'
@@ -1717,6 +1899,13 @@
     delete runs[index].finalizedAt;
     runs[index].stage = 4;
     runs[index].status = reviewCount ? "Comparison needs review" : "Comparison complete";
+    if (runs[index].demoKind === "edge" || runs[index].exceptionResolutionStatus) {
+      runs[index].exceptionResolutionStatus = runs[index].duplicateReview?.outcome === "confirmed_duplicate"
+        ? "Duplicate confirmed · reviewer decision required"
+        : reviewCount
+          ? "Comparison rerun · analyst action remains"
+          : "Checks clear · reviewer decision required";
+    }
     recordAudit(runs[index], 4, "Cross-document comparison", checks.length - reviewCount + " matched; " + reviewCount + " need review.", runs[index].comparison.checkedAt);
     writeRuns(runs);
     renderQueue();
@@ -1818,6 +2007,13 @@
     delete runs[index].finalizedAt;
     runs[index].stage = 5;
     runs[index].status = status;
+    if (runs[index].demoKind === "edge" || runs[index].exceptionResolutionStatus) {
+      runs[index].exceptionResolutionStatus = status === "Approved"
+        ? "Resolved · reviewer approved after checks"
+        : status === "Rejected"
+          ? "Closed · reviewer rejection recorded"
+          : "Pending · vendor clarification or analyst action needed";
+    }
     recordAudit(runs[index], 5, "Onboarding decision", status + " · " + decision.source + " · " + decision.reason, decidedAt);
     writeRuns(runs);
     renderQueue();
@@ -1935,6 +2131,9 @@
       : Object.assign(makeFollowUpDraft(runs[index]), { createdAt: now, updatedAt: now });
     runs[index].followUp = draft;
     runs[index].stage = 6;
+    if (runs[index].demoKind === "edge" || runs[index].exceptionResolutionStatus) {
+      runs[index].exceptionResolutionStatus = draft.required ? "Waiting for vendor · follow-up draft saved" : "Approved · no follow-up required";
+    }
     recordAudit(runs[index], 6, "Vendor follow-up", draft.required ? "Editable follow-up draft prepared; not sent." : "No follow-up required for this approved vendor.", now);
     writeRuns(runs);
     renderQueue();
@@ -2013,6 +2212,7 @@
       const now = new Date().toISOString();
       runs[index].finalizedAt = now;
       runs[index].stage = 7;
+      if (runs[index].demoKind === "edge" || runs[index].exceptionResolutionStatus) runs[index].exceptionResolutionStatus = "Closed · run finalized";
       recordAudit(runs[index], 7, "Run completed", "Final decision and activity history recorded.", now);
       writeRuns(runs);
     }
@@ -2045,7 +2245,7 @@
         showRunDetails(runId);
       }
       showToast("No documents attached; you can continue to the completeness checks.");
-      return;
+      return false;
     }
 
     button.disabled = true;
@@ -2071,6 +2271,9 @@
       const runs = readRuns();
       const index = runs.findIndex((item) => item.id === runId);
       if (index < 0) throw new Error("This submission is no longer in the local queue.");
+      const uploadedKinds = new Set(savedFiles.map((item) => item.kind));
+      const retainedBaselineDocs = (runs[index].extraction?.documents || []).filter((item) => item.synthetic && !uploadedKinds.has(item.kind));
+      responseBody.documents = retainedBaselineDocs.concat(responseBody.documents || []);
       runs[index].extraction = responseBody;
       delete runs[index].validation;
       delete runs[index].comparison;
@@ -2087,13 +2290,163 @@
       renderQueue();
       showRunDetails(runId);
       showToast(hasReadableDocuments ? "Document text extracted and saved locally." : "Documents need a manual review.");
+      return hasReadableDocuments;
     } catch (error) {
       status.textContent = "Extraction did not complete.";
       results.innerHTML = `<div class="extraction-error">${escapeHtml(error.message || "Could not read these documents.")} Start the local reader with <code>py server.py</code>, then retry.</div>`;
       document.querySelector(".dialog-stage").textContent = "Stage 2 could not run · Start the local reader and try again";
       button.disabled = false;
       button.textContent = "Try again";
+      return false;
     }
+  }
+
+  async function attachExceptionEvidence(runId) {
+    const input = document.querySelector("#exception-upload-file");
+    const file = input.files[0];
+    const kind = document.querySelector("#exception-upload-kind").value;
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      showToast("This file is over the 10 MB limit.");
+      return;
+    }
+    if (!/\.(pdf|docx|txt|csv|png|jpe?g)$/i.test(file.name)) {
+      showToast("Use a PDF, DOCX, TXT, CSV, PNG, or JPG file.");
+      return;
+    }
+    const button = document.querySelector("#exception-upload-button");
+    button.disabled = true;
+    button.textContent = "Saving evidence…";
+    try {
+      await saveFiles(runId, [{ kind, file }]);
+      const runs = readRuns();
+      const index = runs.findIndex((item) => item.id === runId);
+      if (index < 0) throw new Error("This case is no longer in the review queue.");
+      runs[index].documents = (runs[index].documents || []).filter((item) => item.kind !== kind);
+      runs[index].documents.push({ kind, name: file.name, type: file.type || "application/octet-stream", size: file.size });
+      if (["Bank proof", "Bank relationship evidence", "Registration document"].includes(kind)) delete runs[index].bankRelationshipReview;
+      if (["Tax document", "Registration document"].includes(kind)) delete runs[index].taxIdCorrection;
+      if (["Tax document", "Registration document", "Entity separation evidence"].includes(kind)) delete runs[index].duplicateReview;
+      delete runs[index].validation;
+      delete runs[index].comparison;
+      delete runs[index].decision;
+      delete runs[index].followUp;
+      delete runs[index].finalizedAt;
+      runs[index].stage = 2;
+      runs[index].status = "New evidence attached · checks need rerun";
+      runs[index].exceptionResolutionStatus = "Evidence attached · reading and rerunning checks";
+      recordAudit(runs[index], 2, "Additional evidence received", kind + " attached: " + file.name + ". Existing source values were preserved; Stage 3 and Stage 4 results will be rerun.");
+      writeRuns(runs);
+      renderQueue();
+      showRunDetails(runId);
+      const readable = await extractRunDocuments(runId);
+      if (!readable) {
+        const latest = readRuns().find((item) => item.id === runId);
+        if (latest) {
+          latest.exceptionResolutionStatus = "Evidence attached · manual review or reader retry needed";
+          writeRuns(readRuns().map((item) => item.id === runId ? latest : item));
+          renderQueue();
+          showRunDetails(runId);
+        }
+        return;
+      }
+      runValidation(runId);
+      runComparison(runId);
+      showToast("Evidence read. Completeness and comparison checks were rerun.");
+    } catch (error) {
+      showToast(error.message || "Could not attach evidence to this case.");
+    } finally {
+      const current = document.querySelector("#exception-upload-button");
+      if (current) {
+        current.textContent = "Attach and rerun checks";
+        current.disabled = !document.querySelector("#exception-upload-file").files[0];
+      }
+    }
+  }
+
+  function recordBankRelationshipReview(runId) {
+    const note = document.querySelector("#bank-relationship-note")?.value.trim();
+    const runs = readRuns();
+    const index = runs.findIndex((item) => item.id === runId);
+    if (index < 0 || !note) { showToast("Add the reviewer note explaining the account relationship."); return; }
+    const evidence = (runs[index].documents || []).find((item) => item.kind === "Bank relationship evidence" && !item.synthetic);
+    const bankProof = (runs[index].documents || []).find((item) => item.kind === "Bank proof" && !item.synthetic);
+    if (!bankProof || !evidence) { showToast("Attach current Bank proof and Bank relationship evidence before recording this review."); return; }
+    const now = new Date().toISOString();
+    runs[index].bankRelationshipReview = { evidenceName: evidence.name, note, reviewedAt: now };
+    runs[index].exceptionResolutionStatus = "Relationship reviewed · comparison rerun";
+    recordAudit(runs[index], 4, "Bank relationship reviewed", "Reviewer reviewed " + evidence.name + " and recorded: " + note + " Submitted names were not changed.", now);
+    writeRuns(runs);
+    renderQueue();
+    if ((runs[index].stage || 1) < 3) runValidation(runId);
+    runComparison(runId);
+    showToast("Reviewer relationship note saved. The comparison now shows the adjudication.");
+  }
+
+  function recordDuplicateReview(runId, outcome) {
+    const noteSelector = outcome === "confirmed_duplicate" ? "#duplicate-confirm-note" : "#duplicate-distinct-note";
+    const note = document.querySelector(noteSelector)?.value.trim();
+    const runs = readRuns();
+    const index = runs.findIndex((item) => item.id === runId);
+    if (index < 0 || !note) { showToast("Add a reviewer reason before recording the duplicate outcome."); return; }
+    const evidence = outcome === "not_duplicate"
+      ? (runs[index].documents || []).find((item) => item.kind === "Entity separation evidence" && !item.synthetic)
+      : null;
+    if (outcome === "not_duplicate" && !evidence) { showToast("Attach Entity separation evidence before clearing the match."); return; }
+    const now = new Date().toISOString();
+    runs[index].duplicateReview = { outcome, evidenceName: evidence?.name || "", note, reviewedAt: now };
+    runs[index].exceptionResolutionStatus = outcome === "confirmed_duplicate"
+      ? "Duplicate confirmed · reviewer decision required"
+      : "Distinct entity recorded · comparison rerun";
+    recordAudit(runs[index], 4, outcome === "confirmed_duplicate" ? "Duplicate confirmed by reviewer" : "Duplicate match cleared by reviewer", (evidence ? "Evidence: " + evidence.name + ". " : "") + note, now);
+    writeRuns(runs);
+    renderQueue();
+    if ((runs[index].stage || 1) < 3) runValidation(runId);
+    runComparison(runId);
+    if (outcome === "confirmed_duplicate") {
+      const override = document.querySelector("#decision-override");
+      const reason = document.querySelector("#decision-reason");
+      override.value = "Rejected";
+      reason.value = note.slice(0, 500);
+      override.dispatchEvent(new Event("change", { bubbles: true }));
+      document.querySelector("#decision-panel").scrollIntoView({ behavior: "smooth", block: "center" });
+      showToast("Duplicate recorded. Review the reasoned rejection and click Make decision to save it.");
+    } else {
+      showToast("Distinct-entity evidence recorded. The duplicate comparison was rerun.");
+    }
+  }
+
+  function applyTaxCorrection(runId, pairIndex) {
+    const note = document.querySelector("#tax-correction-note")?.value.trim();
+    const runs = readRuns();
+    const index = runs.findIndex((item) => item.id === runId);
+    if (index < 0 || !note) { showToast("Add a reviewer note before applying the corrected tax ID."); return; }
+    const pair = taxCorrectionPairs(runs[index])[pairIndex];
+    if (!pair) { showToast("The paired source values are no longer available. Read the replacement documents again."); return; }
+    const now = new Date().toISOString();
+    runs[index].taxId = pair.value;
+    runs[index].taxIdCorrection = {
+      value: pair.value,
+      taxEvidenceName: pair.tax.sourceName,
+      registrationEvidenceName: pair.registration.sourceName,
+      note,
+      acceptedAt: now,
+    };
+    runs[index].exceptionResolutionStatus = "Tax ID correction recorded · checks rerun";
+    recordAudit(runs[index], 2, "Tax ID corrected from paired source documents", pair.value + " · Tax: " + evidenceLabel(pair.tax) + " · Registration: " + evidenceLabel(pair.registration) + " · Reviewer note: " + note, now);
+    delete runs[index].validation;
+    delete runs[index].comparison;
+    delete runs[index].decision;
+    delete runs[index].followUp;
+    delete runs[index].finalizedAt;
+    runs[index].stage = 2;
+    runs[index].status = "Tax ID corrected from source evidence · checks need rerun";
+    writeRuns(runs);
+    renderQueue();
+    showRunDetails(runId);
+    runValidation(runId);
+    runComparison(runId);
+    showToast("The matched source value was applied. Stage 3 and Stage 4 checks were rerun.");
   }
 
   function formatSize(bytes) {
@@ -2261,7 +2614,25 @@
 
   document.body.addEventListener("click", (event) => {
     const button = event.target.closest("[data-open-run]");
-    if (button) showRunDetails(button.dataset.openRun);
+    if (button) { showRunDetails(button.dataset.openRun); return; }
+    const action = event.target.closest("[data-exception-action]");
+    if (!action) return;
+    const runId = document.querySelector("#exception-resolution").dataset.runId;
+    switch (action.dataset.exceptionAction) {
+      case "apply-tax": applyTaxCorrection(runId, Number(action.dataset.pairIndex)); break;
+      case "confirm-bank": recordBankRelationshipReview(runId); break;
+      case "confirm-duplicate": recordDuplicateReview(runId, "confirmed_duplicate"); break;
+      case "clear-duplicate": recordDuplicateReview(runId, "not_duplicate"); break;
+      case "prepare-followup": prepareFollowUp(runId); break;
+    }
+  });
+  document.querySelector("#exception-upload-file").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    document.querySelector("#exception-upload-name").textContent = file ? file.name + " · " + formatSize(file.size) : "Choose a supporting file";
+    document.querySelector("#exception-upload-button").disabled = !file;
+  });
+  document.querySelector("#exception-upload-button").addEventListener("click", () => {
+    attachExceptionEvidence(document.querySelector("#exception-upload-button").dataset.runId);
   });
   document.querySelector("#extract-button").addEventListener("click", () => {
     extractRunDocuments(document.querySelector("#extract-button").dataset.runId);

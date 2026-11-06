@@ -88,7 +88,7 @@
     },
     {
       scenario: "invalid_tax_id",
-      scenarioLabel: "Tax ID shape needs review",
+      scenarioLabel: "Tax ID correction required",
       legalName: "Silver Fern Supplies Pvt. Ltd.",
       country: "India",
       taxId: "INVALID123",
@@ -315,7 +315,7 @@
   ];
 
   window.ASA_DEMO_DATASET = Object.freeze({
-    version: "2026.4",
+    version: "2026.5",
     countryTargets: countryTargets.map((entry) => ({ ...entry })),
     monthlyTargets: monthSchedule.map((entry) => ({ ...entry })),
     normalCases,

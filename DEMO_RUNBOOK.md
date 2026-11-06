@@ -20,11 +20,61 @@ Open the Render URL with `?demo=1`. A fresh browser automatically loads 140 fict
 
 **Say:** "The charts show how volume, outcomes, and review reasons differ across the portfolio. An approval means the configured prototype checks passed; it is not an identity or registry verification. Rejections are human decisions, and Analytics keeps the reason visible for each one."
 
-The dashboard uses fictional records and generated evidence; it does not include real vendors or source documents. Analytics are stored in the current browser and are not shared across visitors.
+The portfolio records are fictional. The exception walkthrough below uses separate fictional evidence files that you attach live; analytics and case records are local to this browser.
 
-### Pending cases for the later edge-case walkthrough
+### Exception desk walkthrough: four resolution paths
 
-The four Pending cases are already in the Review queue: missing bank proof, tax ID shape needs review, bank-holder/name mismatch, and possible duplicate. Open one to see its specific review signal and suggested handling. We will build out the dedicated edge-case presentation after the analytics work.
+Open **Exception desk**. It prioritizes the four held cases and groups them as an evidence gap, tax correction, bank relationship review, and duplicate match. Each case opens a reviewer workbench with an evidence uploader, source checks, case-specific actions, and a saved audit trail. Attachments accept PDF, DOCX, TXT, CSV, PNG, and JPG up to 10 MB; scanned PDFs are not OCR'd.
+
+All walkthrough files are in `demo_packet/edge_cases/`. Use the matching **Document type** in the case workbench. Each attachment replaces the same-kind illustrative source for that case. The reader extracts supported text, then the app automatically reruns Stage 3 completeness and Stage 4 comparison. The result does not save an onboarding decision; the reviewer still records one in Stage 5.
+
+#### 1. Resolve missing bank proof
+
+1. Open **Missing bank proof** for Westhaven Distribution Ltd.
+2. Choose **Bank proof** and upload `demo_packet/edge_cases/01_westhaven_bank_proof.txt`; click **Attach and rerun checks**.
+3. Show the new filename and extracted account-holder evidence. Stage 3 should clear the required-document flag; Stage 4 should match the bank holder.
+4. In Stage 5, record the refreshed rule-based result. If approved, Stage 6 records no follow-up. The app never sends a vendor email.
+
+**Say:** “The missing document is a hold, not a rejection. I attach the vendor’s bank proof, reread it, and rerun both checks. The source file now supports the holder name, and the analyst records the final outcome.”
+
+#### 2. Correct a conflicting tax ID from two sources
+
+1. Open **Tax ID correction required** for Silver Fern Supplies Pvt. Ltd.
+2. Upload `02_silver_fern_replacement_tax.txt` as **Tax document**, attach and rerun. Then upload `02_silver_fern_replacement_registration.txt` as **Registration document**, attach and rerun.
+3. Enter a note such as: “Both replacement documents show ABCDS1234K; the configured India shape passes. This is a syntax check, not registry verification.” Click **Apply paired value**.
+4. The app only offers the correction when both actual uploaded source documents contain the same country-shaped ID. It records the filenames and note, updates the submitted ID, then reruns Stages 3 and 4. Show the extracted evidence and the resulting checks before recording the decision.
+
+**Say:** “The tool does not guess which tax number is right. I provide corrected tax and registration evidence, confirm that both sources agree, and explain why I accept the value. The original mismatch stays in the audit timeline.”
+
+#### 3. Review an authorized affiliate bank account
+
+1. Open **Bank holder differs from vendor name** for Riverstone Components Ltd.
+2. Upload `03_riverstone_bank_proof.txt` as **Bank proof**, attach and rerun. The name difference should remain visible.
+3. Upload `03_riverstone_relationship_evidence.txt` as **Bank relationship evidence**, attach and rerun.
+4. Add an analyst note, for example: “The affiliate letter and current bank confirmation support the authorized settlement relationship; both were reviewed against policy.” Click **Record relationship review and rerun comparison**.
+5. Stage 4 marks the relationship check as reviewed while preserving both submitted names and showing the evidence filename and note. The analyst still records the Stage 5 decision.
+
+**Say:** “A name mismatch should not be silently normalized. The reviewer checks current bank proof and the relationship evidence, records the basis, and the comparison explains that the source names remain unchanged.”
+
+#### 4. Confirm the possible duplicate and record a reasoned rejection
+
+1. Open **Possible duplicate submission** for Mosaic Field Services Ltd. In Stage 4, show the linked case and whether the same country/tax ID, legal name, or email matched.
+2. In **Confirm duplicate — reviewer reason**, enter: “Same legal name, country, tax ID, and contact email as ASA-26-0050. This submission repeats the existing vendor profile.” Click **Confirm duplicate and prepare rejection**.
+3. The duplicate stays a review signal. Stage 5 is prefilled with **Rejected** and the reviewer’s reason; inspect it, then click **Make decision** to save the rejection.
+4. Show the decision in **Decision outputs** or Analytics. The portfolio should now show 120 Approved, three Pending, and 17 Rejected without changing the total of 140. The new reason appears under reviewer decisions. The system never rejects automatically.
+
+**Say:** “A possible duplicate only prompts investigation. I compare the linked record and record the rejection reason as the analyst. The case is not rejected until I save that explicit decision.”
+
+**Optional false-positive branch:** attach `04_mosaic_entity_separation.txt` as **Entity separation evidence**, rerun, add a reviewer note explaining the evidence, and choose **Record distinct-entity review and rerun comparison**. The interface warns that matching ID and contact details remain serious signals; use this only as a training path, not as proof that a real duplicate is cleared.
+
+### What the exception flow demonstrates
+
+- A vendor PDF or supporting PDF can be attached to a case; selectable text is read with the existing free local reader, with no paid AI service or API key.
+- New evidence replaces the same document type, preserves other source records, and triggers Stage 3 and Stage 4 again.
+- Tax corrections require the same valid-shape value from actual Tax and Registration documents, plus an analyst note.
+- Bank relationship overrides require current Bank proof, separate relationship evidence, and an analyst note; submitted names are not rewritten.
+- Duplicate matches link to the compared case. A true duplicate requires an explicit reasoned Stage 5 reviewer rejection.
+- Decisions and evidence actions are appended to the case audit trail; the application does not send emails or make registry lookups.
 ## Show the PDF intake and vendor evidence planner
 
 Use `demo_packet/00_vendor_submission.pdf` for a separate intake demo. It contains only fictional, selectable text.
