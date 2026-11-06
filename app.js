@@ -28,6 +28,7 @@
   const toast = document.querySelector("#toast");
   const dialog = document.querySelector("#run-dialog");
   let toastTimer;
+  const extractionCache = new Map();
 
   function applyTheme(theme, persist = false) {
     const dark = theme === "dark";
@@ -350,7 +351,6 @@
       ? "Public prototype · use fictional data only"
       : "Private to this browser";
     document.querySelector("#workspace-status-icon").classList.toggle("hidden", isHosted);
-    document.querySelector("#hosted-demo-warning").classList.toggle("hidden", !isHosted);
   }
 
   function documentCountLabel(run) {
@@ -1135,7 +1135,9 @@
     } else if (/\b(check|review|ready|complete|missing|next)\b/.test(query)) {
       answer = copilotFormSummary() + " Read the packet for source-linked suggestions, then choose the next review action.";
     } else if (/\b(private|privacy|local|online|internet|data|account|free|cost|api|ai)\b/.test(query)) {
-      answer = "This analyst copilot uses local rules and the document reader on this device. No account or API key is needed. Selected files go only to the local reader at 127.0.0.1; no external AI service is used.";
+      answer = "The Copilot uses free, rule-based guidance; no account, paid AI service, or API key is needed. " + (IS_LOCAL_DEMO
+        ? "Files are read by the local service on this device."
+        : "Files are sent to the hosted demo reader for text extraction and are not retained by the service.");
     } else if (/\b(fill|suggest|read|extract|prefill)\b/.test(query)) {
       answer = snapshot.documents.length
         ? "Choose “Review packet and suggest fields.” I will show detected values with their source and evidence. You decide whether to apply each suggestion."
@@ -1181,7 +1183,7 @@
       return 0;
     }
 
-    results.innerHTML = Array.from(groups.values()).map((candidates) => {
+    const suggestionCards = Array.from(groups.values()).map((candidates) => {
       const uniqueValues = new Set(candidates.map((candidate) => comparableCopilotValue(candidate.value)));
       const hasConflict = uniqueValues.size > 1;
       return '<section class="copilot-suggestion-group' + (hasConflict ? ' has-conflict' : '') + '">'
@@ -1194,7 +1196,17 @@
         + (hasConflict ? '<p class="copilot-conflict-note">The documents show different values. Compare the source files before choosing one.</p>' : '')
         + '</section>';
     }).join("");
-    return Array.from(groups.values()).reduce((count, candidates) => count + candidates.length, 0);
+    const suggestionCount = Array.from(groups.values()).reduce((count, candidates) => count + candidates.length, 0);
+    const bulkAction = results.id === "submission-pdf-results"
+      ? '<div class="pdf-suggestion-actions"><p>Review the values and page evidence above, then apply them together.</p><button class="button-primary compact" type="button" data-copilot-apply-all>Apply all ' + suggestionCount + ' suggestions</button></div>'
+      : "";
+    results.innerHTML = suggestionCards + bulkAction;
+    return suggestionCount;
+  }
+
+  function extractionCacheKey(document) {
+    const file = document.file;
+    return [document.kind, file.name, file.size, file.lastModified || 0].join("\u0000");
   }
 
   async function readSelectedDocuments(documents, button, results, reply) {
@@ -1214,20 +1226,29 @@
     reply.textContent = "The built-in reader is checking the attached files. Values will appear with their source so you can confirm them.";
     results.innerHTML = '<div class="copilot-result-note">Reading the selected files with the built-in text reader...</div>';
     try {
-      const payload = new FormData();
-      payload.append("run_id", "DRAFT-" + Date.now());
-      documents.forEach(({ kind, file }) => {
-        payload.append("files", file, file.name);
-        payload.append("kinds", kind);
-      });
-      const response = await fetch(API_BASE + "/api/extract", { method: "POST", body: payload });
-      const responseBody = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(responseBody.detail || "Document reader returned " + response.status + ".");
+      const unreadDocuments = documents.filter((document) => !extractionCache.has(extractionCacheKey(document)));
+      if (unreadDocuments.length) {
+        const payload = new FormData();
+        payload.append("run_id", "DRAFT-" + Date.now());
+        unreadDocuments.forEach(({ kind, file }) => {
+          payload.append("files", file, file.name);
+          payload.append("kinds", kind);
+        });
+        const response = await fetch(API_BASE + "/api/extract", { method: "POST", body: payload });
+        const responseBody = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(responseBody.detail || "Document reader returned " + response.status + ".");
+        unreadDocuments.forEach((document, index) => {
+          const extracted = responseBody.documents?.[index];
+          if (extracted) extractionCache.set(extractionCacheKey(document), { ...extracted, fileSize: document.file.size });
+        });
+      }
 
-      const suggestions = renderCopilotSuggestions(responseBody.documents || [], results);
-      const needsManualReview = (responseBody.documents || []).filter((document) => document.status !== "read").length;
+      const extractedDocuments = documents.map((document) => extractionCache.get(extractionCacheKey(document))).filter(Boolean);
+      const suggestions = renderCopilotSuggestions(extractedDocuments, results);
+      const needsManualReview = extractedDocuments.filter((document) => document.status !== "read").length;
+      const usedCache = unreadDocuments.length === 0;
       reply.textContent = suggestions
-        ? "Found " + suggestions + " labelled value" + (suggestions === 1 ? "" : "s") + ". Review each source and choose Use only for values you confirm." + (needsManualReview ? " Some files need manual review or OCR." : "")
+        ? (usedCache ? "Showing the PDF fields already read above. " : "Found " + suggestions + " labelled value" + (suggestions === 1 ? "" : "s") + ". ") + "Review the source evidence and apply the values you confirm." + (needsManualReview ? " Some files need manual review or OCR." : "")
         : "I couldn't find labelled values in the readable text. Enter them manually and check any scanned files yourself.";
     } catch (error) {
       results.innerHTML = "";
@@ -1271,14 +1292,14 @@
     updateCopilotReadiness();
   }
 
-  function applyCopilotSuggestion(button) {
+  function applyCopilotSuggestion(button, { focus = true, announce = true } = {}) {
     const fieldName = button.dataset.copilotApply;
     const value = button.dataset.copilotValue;
     const target = form.elements.namedItem(fieldName);
     const feedback = button.closest("#submission-pdf-results")
       ? document.querySelector("#submission-pdf-note")
       : document.querySelector("#copilot-reply");
-    if (!target) return;
+    if (!target) return false;
     if (target.tagName === "SELECT") {
       let option = Array.from(target.options).find((item) => comparableCopilotValue(item.value) === comparableCopilotValue(value));
       if (!option && fieldName === "vendorType") {
@@ -1301,8 +1322,8 @@
         if (profile) option = Array.from(target.options).find((item) => item.value === profile.id);
       }
       if (!option) {
-        feedback.textContent = "The document says “" + value + "”, which does not match an available choice. Select the closest option manually.";
-        return;
+        if (announce) feedback.textContent = "The document says “" + value + "”, which does not match an available choice. Select the closest option manually.";
+        return false;
       }
       target.value = option.value;
     } else {
@@ -1310,8 +1331,22 @@
     }
     target.dispatchEvent(new Event("input", { bubbles: true }));
     target.dispatchEvent(new Event("change", { bubbles: true }));
-    feedback.textContent = "Filled " + (target.labels?.[0]?.innerText?.split("*")[0].trim() || fieldName) + " from the selected source. Please confirm the value before submitting.";
-    target.focus();
+    if (announce) feedback.textContent = "Filled " + (target.labels?.[0]?.innerText?.split("*")[0].trim() || fieldName) + " from the selected source. Please confirm the value before submitting.";
+    if (focus) target.focus();
+    return true;
+  }
+
+  function applyAllPdfSuggestions(button) {
+    const results = document.querySelector("#submission-pdf-results");
+    const feedback = document.querySelector("#submission-pdf-note");
+    const suggestions = Array.from(results.querySelectorAll("[data-copilot-apply]"));
+    let applied = 0;
+    suggestions.forEach((suggestion) => {
+      if (applyCopilotSuggestion(suggestion, { focus: false, announce: false })) applied += 1;
+    });
+    feedback.textContent = "Applied " + applied + " of " + suggestions.length + " suggestions. Check the filled fields before creating the case.";
+    button.textContent = "Applied " + applied + " fields";
+    updateCopilotReadiness();
   }
 
   function recordAudit(run, stage, title, summary, at) {
@@ -2258,15 +2293,24 @@
     try {
       const savedFiles = await readFiles(runId);
       if (!savedFiles.length) throw new Error("The saved attachments are unavailable. Recreate this submission and attach the files again.");
-      const payload = new FormData();
-      payload.append("run_id", runId);
-      savedFiles.forEach((document) => {
-        payload.append("files", document.blob, document.name);
-        payload.append("kinds", document.kind);
-      });
-      const response = await fetch(`${API_BASE}/api/extract`, { method: "POST", body: payload });
-      const responseBody = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(responseBody.detail || `Local reader returned ${response.status}.`);
+      const cachedDocuments = (run.preReadExtraction?.documents || []).filter((cached) =>
+        savedFiles.some((file) => file.kind === cached.kind && file.name === cached.filename && file.size === cached.fileSize),
+      );
+      const cachedKeys = new Set(cachedDocuments.map((item) => item.kind + "\u0000" + item.filename));
+      const filesToRead = savedFiles.filter((file) => !cachedKeys.has(file.kind + "\u0000" + file.name));
+      let responseBody = { runId, processedAt: new Date().toISOString(), documents: [] };
+      if (filesToRead.length) {
+        const payload = new FormData();
+        payload.append("run_id", runId);
+        filesToRead.forEach((file) => {
+          payload.append("files", file.blob, file.name);
+          payload.append("kinds", file.kind);
+        });
+        const response = await fetch(`${API_BASE}/api/extract`, { method: "POST", body: payload });
+        responseBody = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(responseBody.detail || `Local reader returned ${response.status}.`);
+      }
+      responseBody.documents = cachedDocuments.concat(responseBody.documents || []);
 
       const runs = readRuns();
       const index = runs.findIndex((item) => item.id === runId);
@@ -2275,6 +2319,7 @@
       const retainedBaselineDocs = (runs[index].extraction?.documents || []).filter((item) => item.synthetic && !uploadedKinds.has(item.kind));
       responseBody.documents = retainedBaselineDocs.concat(responseBody.documents || []);
       runs[index].extraction = responseBody;
+      delete runs[index].preReadExtraction;
       delete runs[index].validation;
       delete runs[index].comparison;
       delete runs[index].decision;
@@ -2531,6 +2576,11 @@
   });
   [document.querySelector("#copilot-doc-results"), document.querySelector("#submission-pdf-results")].forEach((results) => {
     results.addEventListener("click", (event) => {
+      const applyAllButton = event.target.closest("[data-copilot-apply-all]");
+      if (applyAllButton) {
+        applyAllPdfSuggestions(applyAllButton);
+        return;
+      }
       const button = event.target.closest("[data-copilot-apply]");
       if (button) applyCopilotSuggestion(button);
     });
@@ -2561,6 +2611,7 @@
     const data = new FormData(form);
     const createdAt = new Date().toISOString();
     const id = `VND-${createdAt.slice(2, 10).replaceAll("-", "")}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const preReadDocuments = chosenFiles.map((document) => extractionCache.get(extractionCacheKey(document))).filter(Boolean);
     const run = {
       id,
       legalName: String(data.get("legalName")).trim(),
@@ -2570,6 +2621,7 @@
       accountHolder: String(data.get("accountHolder")).trim(),
       vendorType: String(data.get("vendorType") || ""),
       documents: chosenFiles.map(({ kind, file }) => ({ kind, name: file.name, type: file.type, size: file.size })),
+      preReadExtraction: preReadDocuments.length ? { documents: preReadDocuments } : undefined,
       status: "Received",
       createdAt,
       stage: 1,

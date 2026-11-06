@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=18" />
+    <link rel="stylesheet" href="styles.css?v=20" />
   </head>
   <body>
     <div class="app-shell">
@@ -121,7 +121,6 @@
           </section>
 
           <section class="view hidden" id="new-view" aria-labelledby="page-title">
-            <div class="hosted-demo-warning hidden" id="hosted-demo-warning" role="status"><strong>Public presentation site</strong><span>Use fictional vendor details and files only. Case records stay in this browser; uploaded files are sent to this demo server for text reading and are not saved by the app.</span></div>
             <div class="intake-layout">
               <form class="panel intake-panel" id="submission-form">
                 <div class="panel-heading">
@@ -194,10 +193,10 @@
                     <span class="upload-action" aria-hidden="true">+</span>
                   </label>
                 </div>
-                <div class="upload-footnote"><span class="info-mark">i</span> Files are saved in this browser for the prototype. Maximum 10 MB per file.</div>
+                <div class="upload-footnote"><span class="info-mark">i</span> Public demo: use fictional files only. Uploads are read for text and not retained; case records stay in this browser. Max 10 MB per file.</div>
 
                 <div class="form-footer">
-                  <p><span class="lock-small"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span> Vendor data stays on this device.</p>
+                  <p><span class="lock-small"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span> Case records stay in this browser.</p>
                   <button class="button-primary" type="submit"><span>Create review case</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4l6 6-6 6"/></svg></button>
                 </div>
               </form>
@@ -539,6 +538,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=2"></script>
     <script src="demo-dataset.js?v=6"></script>
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=18"></script>
   </body>
 </html>
