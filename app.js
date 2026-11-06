@@ -10,6 +10,8 @@
   const DEMO_BATCH_REJECTED = "asa-review-hub-rejected-v1";
   const DEMO_BOOTSTRAP_KEY = "asa-review-hub-demo-bootstrap-v1";
   const DEMO_DATASET_VERSION_KEY = "asa-review-hub-demo-dataset-version";
+  const SUBMISSION_PACKET_ID = "submission-pdf";
+  const SUBMISSION_PACKET_KIND = "Vendor submission PDF";
   const DEMO_DATASET = window.ASA_DEMO_DATASET || { normalCases: [], edgeCases: [], rejectedCases: [], countryTargets: [] };
   const IS_LOCAL_DEMO = window.location.protocol === "file:" || ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
   const IS_PRESENTATION_MODE = IS_LOCAL_DEMO || new URLSearchParams(window.location.search).get("demo") === "1";
@@ -776,6 +778,87 @@
     return KNOWLEDGE_BASE.countries.find((entry) => entry.country === country) || null;
   }
 
+  function vendorTypeKnowledge(id) {
+    return KNOWLEDGE_BASE.vendorTypes?.find((entry) => entry.id === id) || null;
+  }
+
+  function populateVendorTypePickers() {
+    [document.querySelector("#intake-vendor-type"), document.querySelector("#evidence-vendor-type")].forEach((picker) => {
+      if (!picker) return;
+      KNOWLEDGE_BASE.vendorTypes.forEach((entry) => {
+        const option = document.createElement("option");
+        option.value = entry.id;
+        option.textContent = entry.label;
+        picker.append(option);
+      });
+    });
+  }
+
+  function evidenceScopeState() {
+    return {
+      personalData: document.querySelector("#evidence-personal-data").checked,
+      onsite: document.querySelector("#evidence-onsite").checked,
+      crossBorder: document.querySelector("#evidence-cross-border").checked,
+      regulatedGoods: document.querySelector("#evidence-regulated-goods").checked,
+      productionAccess: document.querySelector("#evidence-production-access").checked,
+    };
+  }
+
+  function evidenceTriggerLabel(when) {
+    return ({
+      personalData: "Personal or sensitive data",
+      onsite: "On-site work",
+      crossBorder: "Cross-border activity",
+      regulatedGoods: "Regulated or safety-sensitive work",
+      productionAccess: "Production or critical-system access",
+      materialAdvice: "Material professional advice",
+      conflictSensitive: "Independence-sensitive work",
+      criticalService: "Critical business service",
+    })[when] || "If applicable to the engagement";
+  }
+
+  function evidenceItemMarkup(item, index, conditional, scope) {
+    const inScope = Boolean(scope[item.when]);
+    const tag = conditional
+      ? '<span class="evidence-scope-tag' + (inScope ? ' in-scope' : '') + '">' + (inScope ? "IN SCOPE" : escapeHtml(evidenceTriggerLabel(item.when))) + '</span>'
+      : "";
+    return '<article class="evidence-checklist-item"><span class="evidence-check-number">' + String(index + 1).padStart(2, "0") + '</span><div><strong>' + escapeHtml(item.name) + '</strong><p>' + escapeHtml(item.why) + '</p></div>' + tag + '</article>';
+  }
+
+  function renderVendorEvidenceChecklist() {
+    const picker = document.querySelector("#evidence-vendor-type");
+    const target = document.querySelector("#evidence-checklist");
+    const profile = vendorTypeKnowledge(picker.value);
+    if (!profile) {
+      target.innerHTML = '<div class="knowledge-empty"><strong>Select a vendor type to begin.</strong><span>Recommendations explain what to ask for and why. Your company policy and reviewer decide what is actually required.</span></div>';
+      return null;
+    }
+
+    const scope = evidenceScopeState();
+    const standardItems = KNOWLEDGE_BASE.documents.map((item) => ({ name: item.name, why: item.reviewerCue }));
+    const typical = profile.typical || [];
+    const conditional = (profile.conditional || []).slice().sort((a, b) => Number(Boolean(scope[b.when])) - Number(Boolean(scope[a.when])));
+    target.innerHTML = '<div class="evidence-checklist-grid">'
+      + '<section class="evidence-checklist-section"><h3>ASA intake basics</h3>' + standardItems.map((item, index) => evidenceItemMarkup(item, index, false, scope)).join("") + '</section>'
+      + '<section class="evidence-checklist-section"><h3>Typical for ' + escapeHtml(profile.label) + '</h3>' + typical.map((item, index) => evidenceItemMarkup(item, index, false, scope)).join("") + '</section>'
+      + (conditional.length ? '<section class="evidence-checklist-section conditional"><h3>Ask when the scope applies</h3>' + conditional.map((item, index) => evidenceItemMarkup(item, index, true, scope)).join("") + '</section>' : "")
+      + '</div>';
+    return { profile, typical, conditional, scope };
+  }
+
+  function vendorEvidenceAnswer() {
+    const profile = vendorTypeKnowledge(document.querySelector("#evidence-vendor-type").value);
+    if (!profile) return "Choose a vendor type in the Vendor evidence planner first. I will show typical records, why they help, and conditional items to discuss with the reviewer.";
+    const scope = evidenceScopeState();
+    const typical = profile.typical.map((item) => item.name).join(", ");
+    const relevant = profile.conditional.filter((item) => scope[item.when]).map((item) => item.name);
+    const other = profile.conditional.filter((item) => !scope[item.when]).map((item) => item.name);
+    return "For " + profile.label + ", start by considering: " + typical + ". "
+      + (relevant.length ? "The selected scope flags also make these relevant to discuss: " + relevant.join(", ") + ". " : "No conditional scope flag was selected. ")
+      + (other.length ? "Check whether these also apply: " + other.join(", ") + ". " : "")
+      + "Use the planner for the rationale. These are suggestions, not automatic requirements; confirm the work scope, jurisdiction, and ASA policy.";
+  }
+
   function renderKnowledgeLibrary(preferredCountry) {
     const picker = document.querySelector("#copilot-country-picker");
     const detail = document.querySelector("#copilot-knowledge-detail");
@@ -832,7 +915,9 @@
     const outcomes = ["Approved", "Pending", "Rejected"].map((status) => status + ": " + runs.filter((run) => run.decision?.status === status).length);
     const guideCountry = document.querySelector("#copilot-country-picker").value || form.elements.country.value;
     let answer;
-    if (/\b(document|packet|upload|attach|proof|registration document)\b/.test(query)) {
+    if (/\b(vendor-evidence|vendor type|confirmation documents|evidence for (?:this )?vendor)\b/.test(query)) {
+      answer = vendorEvidenceAnswer();
+    } else if (/\b(document|packet|upload|attach|proof|registration document)\b/.test(query)) {
       const attachedKinds = new Set(copilotSnapshot().documents.map((item) => item.kind));
       const missing = KNOWLEDGE_BASE.documents.map((item) => item.name).filter((name) => !attachedKinds.has(name));
       answer = "The prototype packet checklist is: " + KNOWLEDGE_BASE.documents.map((item) => item.name).join(", ") + ". " +
@@ -869,6 +954,12 @@
     document.querySelector("#page-subtitle").textContent = copy[1];
     document.querySelector("#page-stage-label").textContent = copy[2];
     document.querySelector("#heading-action").classList.toggle("hidden", view !== "new");
+    if (view === "copilot") {
+      const intakeType = form.elements.vendorType.value;
+      const picker = document.querySelector("#evidence-vendor-type");
+      if (intakeType && !picker.value) picker.value = intakeType;
+      if (picker.value) renderVendorEvidenceChecklist();
+    }
     renderQueue();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -893,13 +984,15 @@
       const file = document.getElementById(inputId).files[0];
       return file ? [{ kind, file }] : [];
     });
-    return { fields, documents };
+    const submissionPdf = document.getElementById(SUBMISSION_PACKET_ID).files[0];
+    if (submissionPdf) documents.unshift({ kind: SUBMISSION_PACKET_KIND, file: submissionPdf });
+    return { fields, documents, vendorType: String(data.get("vendorType") || "").trim() };
   }
 
   function updateCopilotReadiness() {
     const snapshot = copilotSnapshot();
     const completed = snapshot.fields.filter((field) => field.value).length;
-    const attachedKinds = new Set(snapshot.documents.map((document) => document.kind));
+    const attachedKinds = new Set(snapshot.documents.map((document) => document.kind).filter((kind) => FILE_FIELDS.some(([, expectedKind]) => expectedKind === kind)));
     const missingFields = snapshot.fields.filter((field) => !field.value);
     const missingDocuments = FILE_FIELDS.map(([, kind]) => kind).filter((kind) => !attachedKinds.has(kind));
     const email = snapshot.fields.find((field) => field.name === "email").value;
@@ -918,6 +1011,8 @@
       guidance = "Check the vendor contact email format before opening this review case.";
     } else if (taxId && rule && !rule.pattern.test(normalizedTaxId)) {
       guidance = "The vendor ID may not match the basic " + country + " format. Check it against the source before continuing.";
+    } else if (document.getElementById(SUBMISSION_PACKET_ID).files.length && missingFields.length) {
+      guidance = "Read the vendor submission PDF to suggest the missing fields, then confirm every value against its page evidence.";
     } else if (missingFields.length) {
       guidance = "Next case action: record the " + missingFields[0].label.toLowerCase() + " from the vendor packet.";
     } else if (missingDocuments.length) {
@@ -931,7 +1026,7 @@
   function copilotFormSummary() {
     const snapshot = copilotSnapshot();
     const missingFields = snapshot.fields.filter((field) => !field.value).map((field) => field.label);
-    const attachedKinds = new Set(snapshot.documents.map((document) => document.kind));
+    const attachedKinds = new Set(snapshot.documents.map((document) => document.kind).filter((kind) => FILE_FIELDS.some(([, expectedKind]) => expectedKind === kind)));
     const missingDocuments = FILE_FIELDS.map(([, kind]) => kind).filter((kind) => !attachedKinds.has(kind));
     const email = snapshot.fields.find((field) => field.name === "email").value;
     const country = snapshot.fields.find((field) => field.name === "country").value;
@@ -962,8 +1057,10 @@
     let answer;
 
     if (!query) return;
-    if (/\b(document|upload|attach|file|proof|registration document)\b/.test(query)) {
-      const attachedKinds = new Set(snapshot.documents.map((document) => document.kind));
+    if (/\b(vendor type|confirmation documents|evidence for (?:this )?vendor)\b/.test(query)) {
+      answer = vendorEvidenceAnswer();
+    } else if (/\b(document|upload|attach|file|proof|registration document)\b/.test(query)) {
+      const attachedKinds = new Set(snapshot.documents.map((document) => document.kind).filter((kind) => FILE_FIELDS.some(([, expectedKind]) => expectedKind === kind)));
       const missing = FILE_FIELDS.map(([, kind]) => kind).filter((kind) => !attachedKinds.has(kind));
       answer = "The ASA prototype packet checklist is: " + KNOWLEDGE_BASE.documents.map((item) => item.name).join(", ") + ". " +
         (missing.length ? "Still missing: " + missing.join(", ") + ". " : "All three document types are attached. ") +
@@ -1006,8 +1103,7 @@
       .replace(/[^\p{L}\p{N}]/gu, "");
   }
 
-  function renderCopilotSuggestions(documents) {
-    const results = document.querySelector("#copilot-doc-results");
+  function renderCopilotSuggestions(documents, results = document.querySelector("#copilot-doc-results")) {
     const groups = new Map();
     documents.forEach((document) => {
       (document.fields || []).forEach((field) => {
@@ -1027,7 +1123,8 @@
     });
 
     if (!groups.size) {
-      results.innerHTML = '<div class="copilot-result-note">No labelled fields were found. Enter values manually, or use readable files with labels such as “Legal business name:” or “Tax ID:”. Scanned images need OCR, which is not included.</div>';
+      const notices = documents.map((item) => '<p>' + escapeHtml(item.filename || "Attached document") + ': ' + escapeHtml(item.message || "No labelled values were found.") + '</p>').join("");
+      results.innerHTML = '<div class="copilot-result-note">No labelled fields were found. Enter values manually, or use readable files with labels such as “Legal business name:” or “Tax ID:”.' + notices + '</div>';
       return 0;
     }
 
@@ -1047,16 +1144,12 @@
     return Array.from(groups.values()).reduce((count, candidates) => count + candidates.length, 0);
   }
 
-  async function readCopilotDocuments() {
-    const snapshot = copilotSnapshot();
-    const button = document.querySelector("#copilot-read-button");
-    const reply = document.querySelector("#copilot-reply");
-    const results = document.querySelector("#copilot-doc-results");
-    if (!snapshot.documents.length) {
+  async function readSelectedDocuments(documents, button, results, reply) {
+    if (!documents.length) {
       reply.textContent = "Attach at least one document before asking me to read it.";
       return;
     }
-    const tooLarge = snapshot.documents.find((document) => document.file.size > MAX_FILE_BYTES);
+    const tooLarge = documents.find((document) => document.file.size > MAX_FILE_BYTES);
     if (tooLarge) {
       reply.textContent = tooLarge.file.name + " is over the 10 MB per-file limit.";
       return;
@@ -1064,32 +1157,108 @@
 
     const previousLabel = button.textContent;
     button.disabled = true;
-    button.textContent = "Reading on this device...";
-    reply.textContent = "The local reader is checking the attached files. Values will appear with their source so you can confirm them.";
-    results.innerHTML = '<div class="copilot-result-note">Reading the selected documents locally...</div>';
+    button.textContent = documents.length === 1 && documents[0].kind === SUBMISSION_PACKET_KIND ? "Reading PDF..." : "Reading files...";
+    reply.textContent = "The built-in reader is checking the attached files. Values will appear with their source so you can confirm them.";
+    results.innerHTML = '<div class="copilot-result-note">Reading the selected files with the built-in text reader...</div>';
     try {
       const payload = new FormData();
       payload.append("run_id", "DRAFT-" + Date.now());
-      snapshot.documents.forEach(({ kind, file }) => {
+      documents.forEach(({ kind, file }) => {
         payload.append("files", file, file.name);
         payload.append("kinds", kind);
       });
       const response = await fetch(API_BASE + "/api/extract", { method: "POST", body: payload });
       const responseBody = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(responseBody.detail || "Local reader returned " + response.status + ".");
+      if (!response.ok) throw new Error(responseBody.detail || "Document reader returned " + response.status + ".");
 
-      const suggestions = renderCopilotSuggestions(responseBody.documents || []);
+      const suggestions = renderCopilotSuggestions(responseBody.documents || [], results);
       const needsManualReview = (responseBody.documents || []).filter((document) => document.status !== "read").length;
       reply.textContent = suggestions
         ? "Found " + suggestions + " labelled value" + (suggestions === 1 ? "" : "s") + ". Review each source and choose Use only for values you confirm." + (needsManualReview ? " Some files need manual review or OCR." : "")
         : "I couldn't find labelled values in the readable text. Enter them manually and check any scanned files yourself.";
     } catch (error) {
       results.innerHTML = "";
-      reply.textContent = (error.message || "The local reader could not open these files.") + " Keep the local app running at 127.0.0.1:8000 and try again.";
+      reply.textContent = (error.message || "The document reader could not open these files.") + " Keep the app running and try again.";
     } finally {
       button.disabled = false;
       button.textContent = previousLabel;
     }
+  }
+
+  async function readCopilotDocuments() {
+    const snapshot = copilotSnapshot();
+    return readSelectedDocuments(
+      snapshot.documents,
+      document.querySelector("#copilot-read-button"),
+      document.querySelector("#copilot-doc-results"),
+      document.querySelector("#copilot-reply"),
+    );
+  }
+
+  async function readSubmissionPdf() {
+    const input = document.getElementById(SUBMISSION_PACKET_ID);
+    const file = input.files[0];
+    const button = document.querySelector("#submission-pdf-read");
+    const results = document.querySelector("#submission-pdf-results");
+    const reply = document.querySelector("#submission-pdf-note");
+    if (!file) {
+      reply.textContent = "Choose a vendor submission PDF first.";
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      reply.textContent = "This intake shortcut accepts PDF files only. Use the supporting document slots for other file types.";
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      reply.textContent = "This PDF is over the 10 MB per-file limit.";
+      return;
+    }
+    reply.textContent = "The built-in reader is checking the PDF's selectable text. Detected fields will appear with page evidence for you to confirm.";
+    await readSelectedDocuments([{ kind: SUBMISSION_PACKET_KIND, file }], button, results, reply);
+    updateCopilotReadiness();
+  }
+
+  function applyCopilotSuggestion(button) {
+    const fieldName = button.dataset.copilotApply;
+    const value = button.dataset.copilotValue;
+    const target = form.elements.namedItem(fieldName);
+    const feedback = button.closest("#submission-pdf-results")
+      ? document.querySelector("#submission-pdf-note")
+      : document.querySelector("#copilot-reply");
+    if (!target) return;
+    if (target.tagName === "SELECT") {
+      let option = Array.from(target.options).find((item) => comparableCopilotValue(item.value) === comparableCopilotValue(value));
+      if (!option && fieldName === "vendorType") {
+        const normalized = comparableCopilotValue(value);
+        let profile = KNOWLEDGE_BASE.vendorTypes.find((item) => comparableCopilotValue(item.label) === normalized);
+        if (!profile) {
+          const aliases = [
+            ["software", /software|saas|cloud|\bit\b/],
+            ["professional", /professional|consult|advis|account|legal service/],
+            ["goods", /goods|equipment|suppl|product/],
+            ["logistics", /logistic|transport|carrier|freight/],
+            ["marketing", /market|creative|advert|campaign/],
+            ["facilities", /facilit|on.?site|maintenance|cleaning/],
+            ["data-processing", /data process|business process|\bbpo\b/],
+            ["regulated", /health|medical|regulated|clinical|safety-sensitive/],
+          ];
+          const alias = aliases.find(([, pattern]) => pattern.test(String(value).toLowerCase()));
+          profile = alias && vendorTypeKnowledge(alias[0]);
+        }
+        if (profile) option = Array.from(target.options).find((item) => item.value === profile.id);
+      }
+      if (!option) {
+        feedback.textContent = "The document says “" + value + "”, which does not match an available choice. Select the closest option manually.";
+        return;
+      }
+      target.value = option.value;
+    } else {
+      target.value = value;
+    }
+    target.dispatchEvent(new Event("input", { bubbles: true }));
+    target.dispatchEvent(new Event("change", { bubbles: true }));
+    feedback.textContent = "Filled " + (target.labels?.[0]?.innerText?.split("*")[0].trim() || fieldName) + " from the selected source. Please confirm the value before submitting.";
+    target.focus();
   }
 
   function recordAudit(run, stage, title, summary, at) {
@@ -1101,7 +1270,7 @@
     const validationChecks = run.validation?.checks || [];
     const comparisonChecks = run.comparison?.checks || [];
     const reviewChecks = validationChecks.concat(comparisonChecks).filter((check) => check.state === "review");
-    const documentKinds = new Set((run.documents || []).map((item) => item.kind));
+    const documentKinds = new Set((run.documents || []).map((item) => item.kind).filter((kind) => FILE_FIELDS.some(([, expectedKind]) => expectedKind === kind)));
     const documentCoverage = Math.min(3, documentKinds.size);
     const metrics = [
       { label: "Completeness passed", passed: validationChecks.filter((check) => check.state !== "review").length, total: validationChecks.length },
@@ -1154,6 +1323,7 @@
       ["Contact email", run.email],
       ["Bank account holder", run.accountHolder],
     ];
+    if (run.vendorType) details.push(["Vendor service type", vendorTypeKnowledge(run.vendorType)?.label || run.vendorType]);
     document.querySelector("#dialog-details").innerHTML = details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
     const docs = run.documents || [];
     document.querySelector("#dialog-doc-list").innerHTML = docs.length
@@ -1986,6 +2156,10 @@
       document.querySelector("#copilot-country-picker").value = event.target.value;
       renderKnowledgeLibrary(event.target.value);
     }
+    if (event.target.name === "vendorType") {
+      document.querySelector("#evidence-vendor-type").value = event.target.value;
+      if (event.target.value) renderVendorEvidenceChecklist();
+    }
   });
   document.querySelector("#copilot-country-picker").addEventListener("change", (event) => renderKnowledgeLibrary(event.target.value));
   document.querySelectorAll("[data-workspace-prompt]").forEach((button) => {
@@ -2002,27 +2176,41 @@
     document.querySelector("#workspace-copilot-reply").textContent = "Summary refreshed from the cases saved in this browser.";
   });
   document.querySelector("#copilot-read-button").addEventListener("click", readCopilotDocuments);
-  document.querySelector("#copilot-doc-results").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-copilot-apply]");
-    if (!button) return;
-    const fieldName = button.dataset.copilotApply;
-    const value = button.dataset.copilotValue;
-    const target = form.elements.namedItem(fieldName);
-    if (!target) return;
-    if (target.tagName === "SELECT") {
-      const option = Array.from(target.options).find((item) => comparableCopilotValue(item.value) === comparableCopilotValue(value));
-      if (!option) {
-        document.querySelector("#copilot-reply").textContent = "The document says “" + value + "”, which is not one of the available country options. Choose the closest matching country manually.";
-        return;
-      }
-      target.value = option.value;
-    } else {
-      target.value = value;
+  document.querySelector("#submission-pdf-read").addEventListener("click", readSubmissionPdf);
+  document.querySelector("#submission-pdf").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    const readButton = document.querySelector("#submission-pdf-read");
+    document.querySelector("#submission-pdf-name").textContent = file ? file.name + " · " + formatSize(file.size) : "Choose vendor submission PDF";
+    readButton.disabled = !file;
+    document.querySelector("#submission-pdf-results").innerHTML = "";
+    document.querySelector("#submission-pdf-note").textContent = file
+      ? "Selected PDF · " + formatSize(file.size) + " · Choose Read PDF to inspect its text and review field suggestions."
+      : "PDF only · up to 10 MB · scanned/image-only PDFs need manual entry because free OCR is not included.";
+    updateCopilotReadiness();
+  });
+  document.querySelector("#build-evidence-checklist").addEventListener("click", () => {
+    const result = renderVendorEvidenceChecklist();
+    if (!result) {
+      document.querySelector("#evidence-vendor-type").focus();
+      return;
     }
-    target.dispatchEvent(new Event("input", { bubbles: true }));
-    target.dispatchEvent(new Event("change", { bubbles: true }));
-    document.querySelector("#copilot-reply").textContent = "Filled " + (target.labels?.[0]?.innerText?.split("*")[0].trim() || fieldName) + " from the selected source. Please confirm the value before submitting.";
-    target.focus();
+    document.querySelector("#workspace-copilot-reply").textContent = vendorEvidenceAnswer();
+  });
+  document.querySelector("#evidence-vendor-type").addEventListener("change", (event) => {
+    form.elements.vendorType.value = event.target.value;
+    updateCopilotReadiness();
+    renderVendorEvidenceChecklist();
+  });
+  ["#evidence-personal-data", "#evidence-onsite", "#evidence-cross-border", "#evidence-regulated-goods", "#evidence-production-access"].forEach((selector) => {
+    document.querySelector(selector).addEventListener("change", () => {
+      if (document.querySelector("#evidence-vendor-type").value) renderVendorEvidenceChecklist();
+    });
+  });
+  [document.querySelector("#copilot-doc-results"), document.querySelector("#submission-pdf-results")].forEach((results) => {
+    results.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-copilot-apply]");
+      if (button) applyCopilotSuggestion(button);
+    });
   });
 
   form.addEventListener("submit", async (event) => {
@@ -2033,6 +2221,14 @@
       const file = document.getElementById(inputId).files[0];
       return file ? [{ kind, file }] : [];
     });
+    const submissionPdf = document.getElementById(SUBMISSION_PACKET_ID).files[0];
+    if (submissionPdf) {
+      if (!submissionPdf.name.toLowerCase().endsWith(".pdf")) {
+        showToast("The vendor submission upload must be a PDF.");
+        return;
+      }
+      chosenFiles.unshift({ kind: SUBMISSION_PACKET_KIND, file: submissionPdf });
+    }
     const tooLarge = chosenFiles.find(({ file }) => file.size > MAX_FILE_BYTES);
     if (tooLarge) {
       showToast(`${tooLarge.file.name} is over the 10 MB limit.`);
@@ -2049,6 +2245,7 @@
       taxId: String(data.get("taxId")).trim(),
       email: String(data.get("email")).trim(),
       accountHolder: String(data.get("accountHolder")).trim(),
+      vendorType: String(data.get("vendorType") || ""),
       documents: chosenFiles.map(({ kind, file }) => ({ kind, name: file.name, type: file.type, size: file.size })),
       status: "Received",
       createdAt,
@@ -2066,7 +2263,16 @@
       writeRuns(runs);
       form.reset();
       document.querySelector("#copilot-doc-results").innerHTML = "";
+      document.querySelector("#submission-pdf-results").innerHTML = "";
       document.querySelector("#copilot-reply").textContent = "Review case created. Open it from Submissions to check evidence, compare values, and prepare any follow-up.";
+      document.querySelector("#submission-pdf-name").textContent = "Choose vendor submission PDF";
+      document.querySelector("#submission-pdf-note").textContent = "PDF only · up to 10 MB · scanned/image-only PDFs need manual entry because free OCR is not included.";
+      document.querySelector("#submission-pdf-read").disabled = true;
+      document.querySelector("#evidence-vendor-type").value = "";
+      ["#evidence-personal-data", "#evidence-onsite", "#evidence-cross-border", "#evidence-regulated-goods", "#evidence-production-access"].forEach((selector) => {
+        document.querySelector(selector).checked = false;
+      });
+      document.querySelector("#evidence-checklist").innerHTML = '<div class="knowledge-empty"><strong>Select a vendor type to begin.</strong><span>Recommendations explain what to ask for and why. Your company policy and reviewer decide what is actually required.</span></div>';
       updateCopilotReadiness();
       document.querySelectorAll(".upload-card").forEach((card) => {
         card.classList.remove("has-file");
@@ -2146,6 +2352,7 @@
     applyTheme(nextTheme, true);
   });
 
+  populateVendorTypePickers();
   applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
   configureWorkspaceEnvironment();
   bootstrapLocalDemoDataset();

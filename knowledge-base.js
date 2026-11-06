@@ -3,7 +3,7 @@
  * This is a static help library, not a live registry or an authoritative legal dataset.
  */
 window.ASA_KNOWLEDGE_BASE = Object.freeze({
-  version: "1.0",
+  version: "1.1",
   reviewedOn: "2026-11-05",
   documents: [
     {
@@ -17,6 +17,116 @@ window.ASA_KNOWLEDGE_BASE = Object.freeze({
     {
       name: "Bank proof",
       reviewerCue: "Compare the account holder name with the vendor details. This prototype never asks for an account number.",
+    },
+  ],
+  vendorTypes: [
+    {
+      id: "software",
+      label: "Software, cloud, or IT services",
+      typical: [
+        { name: "Service description and access/data-flow summary", why: "Shows what the service does, which systems it touches, and what information it receives." },
+        { name: "Security assurance evidence (if available)", why: "Review the scope and date of a SOC 2, ISO 27001, or equivalent report; a badge alone does not establish coverage." },
+      ],
+      conditional: [
+        { when: "personalData", name: "Data processing terms and subprocessors", why: "Use when the provider handles personal or sensitive information; confirm roles, locations, retention, and deletion." },
+        { when: "productionAccess", name: "Incident response and business continuity summary", why: "Useful when the service has production access or could interrupt a critical operation." },
+      ],
+    },
+    {
+      id: "professional",
+      label: "Professional services or consulting",
+      typical: [
+        { name: "Statement of work and named delivery roles", why: "Makes the work, deliverables, owners, and access boundaries reviewable." },
+        { name: "Relevant credentials or professional registrations", why: "Check where the engagement relies on regulated or specialist expertise." },
+      ],
+      conditional: [
+        { when: "materialAdvice", name: "Professional indemnity or errors-and-omissions cover", why: "Consider when the advice or work could create material financial, operational, or client impact." },
+        { when: "conflictSensitive", name: "Conflict-of-interest declaration", why: "Useful for procurement, assurance, valuation, or other work where independence matters." },
+      ],
+    },
+    {
+      id: "goods",
+      label: "Goods, equipment, or supplies",
+      typical: [
+        { name: "Product specification and model/part list", why: "Confirms what is being purchased and supports receiving and quality checks." },
+        { name: "Warranty, returns, and support terms", why: "Clarifies defect handling and the supplier's responsibilities after delivery." },
+      ],
+      conditional: [
+        { when: "regulatedGoods", name: "Applicable safety or conformity declarations", why: "Request for regulated or safety-sensitive products, using the rules for the destination market." },
+        { when: "crossBorder", name: "Country of origin and import/customs paperwork", why: "Relevant when goods cross borders; confirm which party is responsible for import obligations." },
+      ],
+    },
+    {
+      id: "logistics",
+      label: "Logistics or transport",
+      typical: [
+        { name: "Service coverage, carrier, and subcontractor details", why: "Shows who handles the shipment and where the service operates." },
+        { name: "Cargo liability and insurance summary", why: "Lets the reviewer compare coverage with the shipment value and service scope." },
+      ],
+      conditional: [
+        { when: "crossBorder", name: "Relevant transport permits and customs process", why: "Confirm permits and customs responsibilities for the actual routes and goods." },
+        { when: "regulatedGoods", name: "Special handling procedures and staff training", why: "Use when the vendor handles hazardous, temperature-controlled, or otherwise restricted goods." },
+      ],
+    },
+    {
+      id: "marketing",
+      label: "Marketing or creative services",
+      typical: [
+        { name: "Deliverables, usage rights, and third-party asset list", why: "Clarifies ownership, licenses, channels, and reuse permissions." },
+        { name: "Subcontractor and talent/creator details", why: "Makes third-party delivery roles and approvals visible." },
+      ],
+      conditional: [
+        { when: "personalData", name: "Audience-data source and consent/permission records", why: "Request when campaigns use personal data, customer lists, tracking, or targeted audiences." },
+        { when: "personalData", name: "Data processing terms and platform/subprocessor list", why: "Relevant when the provider or its platforms process personal information for the company." },
+      ],
+    },
+    {
+      id: "facilities",
+      label: "Facilities or on-site services",
+      typical: [
+        { name: "Work method, service scope, and escalation contact", why: "Shows how the work is performed and who responds to an issue." },
+        { name: "Insurance and relevant trade qualifications", why: "Lets the reviewer check whether cover and qualifications fit the work being done." },
+      ],
+      conditional: [
+        { when: "onsite", name: "Site safety training and access records", why: "Apply the company's site-access and safety process to personnel who will attend." },
+        { when: "regulatedGoods", name: "Task-specific permits or safety method statements", why: "Consider for electrical, construction, hazardous-material, or other controlled work." },
+      ],
+    },
+    {
+      id: "data-processing",
+      label: "Data processing or business-process services",
+      typical: [
+        { name: "Data-flow, storage-location, and retention summary", why: "Identifies what data is handled, where it goes, and when it is deleted." },
+        { name: "Security controls and incident-notification process", why: "Gives the reviewer evidence to assess protection and escalation arrangements." },
+      ],
+      conditional: [
+        { when: "personalData", name: "Data processing terms and subprocessor register", why: "Usually relevant when personal or sensitive information is processed on the company's behalf." },
+        { when: "criticalService", name: "Business continuity and recovery summary", why: "Useful if interruption would affect a critical business process." },
+      ],
+    },
+    {
+      id: "regulated",
+      label: "Regulated, healthcare, or safety-sensitive services",
+      typical: [
+        { name: "Current licenses and regulator/professional registrations", why: "Confirm the relevant license, entity, activity, and jurisdiction with the approved source." },
+        { name: "Quality, safety, or clinical-governance evidence", why: "Ask for evidence that fits the activity and the company's risk policy." },
+      ],
+      conditional: [
+        { when: "personalData", name: "Privacy/data protection terms and access controls", why: "Relevant where health, identity, or other sensitive information is accessed or stored." },
+        { when: "onsite", name: "Personnel credentials and site safety evidence", why: "Check people who will deliver the regulated or safety-sensitive work at company locations." },
+      ],
+    },
+    {
+      id: "other",
+      label: "Other or not sure yet",
+      typical: [
+        { name: "Statement of work or purchase description", why: "Start by defining the work, deliverables, data access, locations, and responsible contacts." },
+        { name: "Relevant business registration, tax, and payment evidence", why: "Follow the company's standard onboarding checklist and country-specific process." },
+      ],
+      conditional: [
+        { when: "personalData", name: "Data handling and privacy/security evidence", why: "Consider when the vendor can access personal, confidential, or sensitive information." },
+        { when: "onsite", name: "Insurance, qualifications, and site safety records", why: "Consider when work is performed at company locations or creates physical safety exposure." },
+      ],
     },
   ],
   countries: [

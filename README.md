@@ -16,11 +16,21 @@ The ASA Vendor Review Hub has an Overview dashboard, New review form, Review que
 
 The intake screen includes an analyst copilot for ASA staff processing vendor packets. It shows a live completeness checklist, answers common document and tax-ID questions, and can read selected PDF, DOCX, TXT, or CSV files before the case is created. It shows each detected value with its source evidence; the analyst chooses whether to apply it.
 
-The copilot uses the existing local reader, fixed workflow rules, and a static country reference library in `knowledge-base.js`. The library powers the country selector, identifier hints, reviewer cues, source links, and packet checklist. It is not a generative AI model, needs no account, API key, paid service, or extra package, and sends selected documents only to this app's local server on the same computer.
+The copilot uses the app's free text reader, fixed workflow rules, and the static reference library in `knowledge-base.js`. It is not a generative AI model and needs no account, API key, paid service, or extra package. Locally, files are read by the local app server. On the hosted presentation link, a selected file is sent to the demo server for in-memory text extraction and is not retained by the app; use fictional data only.
 
 The dataset covers basic PAN/GSTIN shapes for India, EIN for the United States, VAT number for the United Kingdom, BN/program account number for Canada, ABN for Australia, and a manual-review guide for Singapore UENs. Other locations receive a manual-review cue. Sources link to official government or regulator material: [Income Tax Department PAN overview](https://wmstatic-prd.incometaxindia.gov.in/web/guest/pan), [PAN format guidance](https://incometaxindia.gov.in/Documents/MOP_Volume_II.pdf), [GST Portal](https://tutorial.gst.gov.in/downloads/invoiceuploadofflineutility.pdf), [IRS](https://www.irs.gov/irm/part3/irm_03-024-038), [GOV.UK](https://www.gov.uk/register-for-vat/how-register-for-vat), [HMRC VAT guidance](https://www.gov.uk/hmrc-internal-manuals/enquiry-manual/em3058), [Canada Revenue Agency](https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/business-registration/business-number-program-account.html), [ACRA Singapore](https://www.acra.gov.sg/resources/guides-forms/applying-for-special-uen/), and [Australian Business Register](https://www.abr.gov.au/business-super-funds-charities/applying-abn).
 
 The library is a focused, maintained reference set, not an exhaustive database of every tax ID or local rule. Its automatic checks only compare basic character and length shapes. They do not contact registries or confirm that an ID is active or belongs to the vendor. Keep a reviewer in the loop and recheck these references before a company deployment. The packet checklist describes this prototype's workflow, not a universal legal requirement.
+
+## PDF-first intake and vendor evidence planner
+
+On **New review**, a vendor can be processed from one completed, text-based PDF form. Choose **Read PDF** to extract labelled values, then use the source-linked suggestions to fill the intake fields. Each suggestion includes its page and evidence line; the analyst applies and confirms it before the case is saved. PDF uploads are limited to 10 MB. Scanned/image-only PDFs need manual entry because free OCR is not included.
+
+The vendor's application PDF records their submitted details; it does not replace separate registration, tax, and bank-proof documents used in the later completeness and comparison stages. The submitted PDF is saved with the case in this browser and read by Stage 2 like the other attachments.
+
+The **Analyst Copilot > Vendor evidence planner** offers typical and conditional confirmation records for software/cloud, consulting, goods, logistics, marketing, facilities, data processing, regulated services, and other vendors. Analysts can flag personal data, on-site work, cross-border activity, regulated goods, or production-system access to highlight relevant conditional items. Each recommendation explains why to ask for it. The curated list is a starting point, not an automatic compliance rule; confirm the scope, jurisdiction, and company policy.
+
+For a ready-made demo, upload `demo_packet/00_vendor_submission.pdf`, apply its six suggestions, and attach the three separate text evidence files. In the evidence planner, choose **Goods, equipment, or supplies** and select the cross-border scope flag to show the origin/import paperwork recommendation.
 
 ## Local presentation portfolio
 

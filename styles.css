@@ -1073,6 +1073,66 @@ body { background: #edf3f4; }
 :root[data-theme="dark"] .theme-toggle, :root[data-theme="dark"] .top-copilot, :root[data-theme="dark"] .button-secondary { border-color: #415464; color: #dce8ef; background: #263542; }
 :root[data-theme="dark"] .theme-toggle svg { color: #e5cf88; }
 :root[data-theme="dark"] .field input, :root[data-theme="dark"] .field select, :root[data-theme="dark"] .workspace-question input, :root[data-theme="dark"] .knowledge-country-label select, :root[data-theme="dark"] textarea, :root[data-theme="dark"] input { border-color: #405363; color: #e5edf4; background: #15212c; }
+
+/* PDF-first intake and vendor-type evidence guidance */
+.submission-pdf-panel { padding: 15px; margin: 0 0 16px; border: 1px solid #cfe4dd; border-radius: 9px; background: linear-gradient(120deg,#f2faf7,#f7f7fc); }
+.submission-pdf-copy { display: flex; align-items: flex-start; gap: 11px; }
+.submission-pdf-icon { display: grid; width: 39px; height: 43px; flex: 0 0 auto; place-items: center; border: 1px solid #d6e6e1; border-radius: 8px; color: #248171; background: #fff; font-size: 10px; font-weight: 900; }
+.submission-pdf-copy strong { display: block; color: #293b48; font-size: 13px; }
+.submission-pdf-copy p { max-width: 680px; margin: 4px 0 0; color: #708087; font-size: 9px; line-height: 1.5; }
+.submission-pdf-actions { display: flex; gap: 8px; margin-top: 12px; }
+.submission-pdf-picker { min-width: 0; min-height: 36px; flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 6px 5px 11px; border: 1px dashed #adcfc3; border-radius: 6px; color: #60716f; background: rgba(255,255,255,.8); cursor: pointer; font-size: 9px; }
+.submission-pdf-picker > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.submission-pdf-picker b { padding: 6px 9px; border: 1px solid #dce9e5; border-radius: 4px; color: #287c6c; background: #f7fbf9; font-size: 8px; }
+.submission-pdf-picker:focus-within { outline: 3px solid rgba(74,169,147,.16); border-color: #65a99d; }
+.submission-pdf-note { margin: 8px 0 0; color: #819097; font-size: 8px; line-height: 1.45; }
+.submission-pdf-limit { padding-top: 8px; margin: 8px 0 0; border-top: 1px solid #e2ece8; color: #667a78; font-size: 8px; line-height: 1.45; }
+.submission-pdf-results.analyst-suggestions { margin: 8px 0 0; }
+.field-optional { display: block; margin-top: 3px; color: #8b969d; font-size: 7px; font-weight: 500; }
+.evidence-planner-panel { padding: 18px; margin: 0 0 14px; border-color: #d7e4e8; background: linear-gradient(145deg,#fff,#f8fbfc); }
+.evidence-planner-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; padding-bottom: 13px; border-bottom: 1px solid #edf1ef; }
+.evidence-planner-heading h2 { margin: 5px 0; color: #30414c; font-family: Manrope,sans-serif; font-size: 17px; font-weight: 800; }
+.evidence-planner-heading p { margin: 0; color: #78868d; font-size: 9px; line-height: 1.5; }
+.evidence-planner-mark { display: grid; width: 39px; height: 39px; flex: 0 0 auto; place-items: center; border: 1px solid #d5e6e1; border-radius: 11px; color: #278070; background: #eff8f4; font-size: 19px; font-weight: 800; }
+.evidence-planner-controls { display: grid; grid-template-columns: minmax(190px,.8fr) minmax(300px,1.5fr) auto; align-items: end; gap: 12px; padding: 14px 0; }
+.evidence-type-label { display: grid; gap: 6px; color: #697981; font-size: 8px; font-weight: 800; }
+.evidence-type-label select { min-height: 37px; padding: 0 10px; border: 1px solid #dce5e2; border-radius: 6px; color: #45545d; background: #fff; font: inherit; font-size: 9px; }
+.evidence-scope { display: flex; flex-wrap: wrap; gap: 7px 13px; padding: 8px 10px 9px; border: 1px solid #e4eae8; border-radius: 7px; color: #66767d; }
+.evidence-scope legend { padding: 0 4px; color: #718087; font-size: 7px; font-weight: 800; }
+.evidence-scope label { display: inline-flex; align-items: center; gap: 5px; font-size: 8px; line-height: 1.35; }
+.evidence-scope input { accent-color: #258272; }
+.evidence-planner-controls > button { min-height: 37px; white-space: nowrap; }
+.evidence-checklist { display: grid; gap: 10px; }
+.evidence-checklist-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.evidence-checklist-section { padding: 12px; border: 1px solid #e4ebe8; border-radius: 8px; background: #fff; }
+.evidence-checklist-section.conditional { border-color: #e8e4f1; background: #fbfaff; }
+.evidence-checklist-section h3 { margin: 0 0 8px; color: #50636b; font-size: 9px; font-weight: 800; }
+.evidence-checklist-item { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: start; gap: 7px; padding: 8px 0; border-top: 1px solid #eef1f0; }
+.evidence-checklist-item:first-of-type { border-top: 0; }
+.evidence-check-number { display: grid; width: 17px; height: 17px; place-items: center; border-radius: 5px; color: #477d70; background: #edf7f3; font-size: 7px; font-weight: 800; }
+.evidence-checklist-item strong { display: block; color: #45565f; font-size: 8px; line-height: 1.4; }
+.evidence-checklist-item p { margin: 3px 0 0; color: #7e8a8e; font-size: 7px; line-height: 1.5; }
+.evidence-scope-tag { padding: 4px 6px; border-radius: 12px; color: #7d6b9f; background: #f0edf8; font-size: 6px; font-weight: 800; white-space: nowrap; }
+.evidence-scope-tag.in-scope { color: #287767; background: #e6f4ee; }
+.evidence-planner-disclaimer { margin: 10px 0 0; color: #8a9699; font-size: 7px; line-height: 1.5; }
+@media (max-width: 1050px) {
+  .evidence-planner-controls { grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); }
+  .evidence-planner-controls > button { grid-column: 1 / -1; justify-self: start; }
+}
+@media (max-width: 680px) {
+  .submission-pdf-actions { align-items: stretch; flex-direction: column; }
+  .submission-pdf-actions > button { width: 100%; }
+  .evidence-planner-controls, .evidence-checklist-grid { grid-template-columns: 1fr; }
+  .evidence-planner-controls > button { grid-column: auto; justify-self: stretch; }
+  .evidence-checklist-item { grid-template-columns: 18px minmax(0,1fr); }
+  .evidence-scope-tag { grid-column: 2; justify-self: start; }
+}
+:root[data-theme="dark"] .submission-pdf-panel, :root[data-theme="dark"] .evidence-planner-panel { border-color: #394b5b; color: #dce6ee; background: #1c2936; background-image: none; }
+:root[data-theme="dark"] .submission-pdf-copy strong, :root[data-theme="dark"] .evidence-planner-heading h2, :root[data-theme="dark"] .evidence-checklist-item strong { color: #e5edf4; }
+:root[data-theme="dark"] .submission-pdf-copy p, :root[data-theme="dark"] .submission-pdf-note, :root[data-theme="dark"] .submission-pdf-limit, :root[data-theme="dark"] .evidence-planner-heading p, :root[data-theme="dark"] .evidence-checklist-item p, :root[data-theme="dark"] .evidence-planner-disclaimer { color: #a8b6c1; }
+:root[data-theme="dark"] .submission-pdf-picker, :root[data-theme="dark"] .evidence-checklist-section, :root[data-theme="dark"] .evidence-checklist-section.conditional { border-color: #394b5b; color: #e5edf4; background: #15212c; }
+:root[data-theme="dark"] .evidence-checklist-section h3, :root[data-theme="dark"] .evidence-scope { color: #c3d0da; }
+:root[data-theme="dark"] .evidence-type-label select { border-color: #405363; color: #e5edf4; background: #15212c; }
 :root[data-theme="dark"] input::placeholder, :root[data-theme="dark"] textarea::placeholder { color: #91a1ae; }
 :root[data-theme="dark"] .table-wrap { border-color: #364756; background: #1c2936; }
 :root[data-theme="dark"] .output-table th, :root[data-theme="dark"] .output-table td { border-color: #354655; }

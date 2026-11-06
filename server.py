@@ -34,12 +34,17 @@ FIELD_RULES = [
     (
         "taxId",
         "Tax or registration ID",
-        r"tax\s*(?:identification\s*)?(?:id|number|no\.?)|tax\s*registration\s*(?:id|number|no\.?)|vat(?:\s*(?:id|number|no\.?))?|gstin|gst(?:\s*(?:id|number|no\.?))?|e\.?i\.?n\.?|t\.?i\.?n\.?|pan|business\s+registration\s+(?:id|number|no\.?)|registration\s+(?:id|number|no\.?)",
+        r"tax\s*(?:identification\s*)?(?:id|number|no\.?)|tax\s+or\s+registration\s+(?:id|number|no\.?)|tax\s*registration\s*(?:id|number|no\.?)|vat(?:\s*(?:id|number|no\.?))?|gstin|gst(?:\s*(?:id|number|no\.?))?|e\.?i\.?n\.?|t\.?i\.?n\.?|pan|business\s+registration\s+(?:id|number|no\.?)|registration\s+(?:id|number|no\.?)",
     ),
     (
         "accountHolder",
         "Bank account holder",
         r"bank\s+account\s+holder|account\s+holder|account\s+name|beneficiary(?:\s+name)?",
+    ),
+    (
+        "vendorType",
+        "Vendor service type",
+        r"vendor\s+(?:service\s+)?type|service\s+category|vendor\s+category|nature\s+of\s+(?:business|services)|type\s+of\s+(?:business|services)",
     ),
     (
         "email",
@@ -122,7 +127,8 @@ def find_fields(pages: list[tuple[int, str]]) -> list[dict[str, str | int]]:
     separator = r"(?::|#|[-–]|,|\t|\s{2,})"
 
     for page_number, page_text in pages:
-        for raw_line in page_text.splitlines():
+        raw_lines = page_text.splitlines()
+        for line_index, raw_line in enumerate(raw_lines):
             line = " ".join(raw_line.replace("\u00a0", " ").split())
             if not line:
                 continue
@@ -134,17 +140,26 @@ def find_fields(pages: list[tuple[int, str]]) -> list[dict[str, str | int]]:
                     line,
                     re.IGNORECASE,
                 )
-                if not match:
+                evidence_line = line
+                method = "Label match"
+                if match:
+                    value = match.group("value").strip(" \t:;|,")
+                elif re.fullmatch(rf"\s*(?:{label_pattern})\s*[:#-]?\s*", line, re.IGNORECASE):
+                    candidate = next((" ".join(item.replace("\u00a0", " ").split()) for item in raw_lines[line_index + 1 : line_index + 3] if item.strip()), "")
+                    starts_another_field = any(re.match(rf"^\s*(?:{other_pattern})\s*(?:{separator}|$)", candidate, re.IGNORECASE) for _, _, other_pattern in FIELD_RULES)
+                    value = "" if starts_another_field else candidate
+                    evidence_line = line + ": " + value if value else line
+                    method = "Adjacent value match"
+                else:
                     continue
-                value = match.group("value").strip(" \t:;|,")
                 if value:
                     found[key] = {
                         "key": key,
                         "label": label,
                         "value": value[:180],
                         "page": page_number,
-                        "evidence": line[:260],
-                        "method": "Label match",
+                        "evidence": evidence_line[:260],
+                        "method": method,
                     }
 
             if "email" not in found:

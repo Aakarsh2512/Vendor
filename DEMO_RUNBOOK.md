@@ -56,6 +56,19 @@ To show a rejection, open **Decision outputs** and select a rejected row with **
 
 End on **Analyst Copilot** to show its queue summary and suggested next actions. The copilot uses local deterministic rules and the country reference dataset; it has no paid API or hosted AI dependency.
 
+## Show the PDF intake and vendor evidence planner
+
+Use `demo_packet/00_vendor_submission.pdf` for a separate intake demo. It contains only fictional, selectable text.
+
+1. Open **New review**, choose the sample PDF, and click **Read PDF**.
+2. Show that each detected value is tied to the PDF page and evidence line. Click **Use** for the business name, country, tax ID, email, bank holder, and vendor service type. Pause to confirm the form fills only after the analyst applies each suggestion.
+3. Attach the separate registration, tax, and bank proof files. Explain that the vendor's application PDF is the intake form and does not replace those evidence documents.
+4. Open **Analyst Copilot > Vendor evidence planner**. Choose **Goods, equipment, or supplies**, mark **Goods or services cross borders**, and click **Build evidence checklist**. Point out the origin/import paperwork item and its rationale. Try the personal-data flag with a software or data-processing vendor to demonstrate a different checklist.
+
+**Say:** "A vendor can send one completed PDF instead of having the analyst retype every field. The free reader extracts selectable text and shows the source page; the analyst chooses which suggestions to apply. The evidence planner then tailors confirmation documents to the type of work and flags conditional items based on scope. It explains why each item may be useful, while the reviewer and company policy decide what is required."
+
+Scanned PDFs are not OCR'd in this free prototype. Enter those values manually, and use only fictional files on the hosted demo: uploaded files are sent to the demo server for text extraction and are not retained by the app.
+
 ## Demo case
 
 Use this fictional vendor and the three text files in demo_packet. The tax ID is shaped to pass the prototype's India PAN syntax check; it is not a real or registry-verified ID.

@@ -10,7 +10,7 @@
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <div class="app-shell">
@@ -126,6 +126,14 @@
                   <span class="required-note"><i></i> Required fields</span>
                 </div>
 
+                <section class="submission-pdf-panel" aria-labelledby="submission-pdf-title">
+                  <div class="submission-pdf-copy"><span class="submission-pdf-icon" aria-hidden="true">PDF</span><div><strong id="submission-pdf-title">Start from the vendor's completed PDF</strong><p>Upload a text-based vendor form. The free built-in reader suggests values with page evidence; an analyst confirms each one.</p></div></div>
+                  <div class="submission-pdf-actions"><label class="submission-pdf-picker" for="submission-pdf"><input class="file-input" id="submission-pdf" type="file" accept=".pdf,application/pdf" /><span id="submission-pdf-name">Choose vendor submission PDF</span><b aria-hidden="true">Browse</b></label><button class="button-primary compact" id="submission-pdf-read" type="button" disabled>Read PDF</button></div>
+                  <p class="submission-pdf-note" id="submission-pdf-note" role="status" aria-live="polite">PDF only · up to 10 MB · scanned/image-only PDFs need manual entry because free OCR is not included.</p>
+                  <p class="submission-pdf-limit">This vendor form PDF can prefill intake details. Attach separate registration, tax, and bank evidence for the later verification stages.</p>
+                  <div class="submission-pdf-results analyst-suggestions" id="submission-pdf-results"></div>
+                </section>
+
                 <div class="form-grid">
                   <label class="field field-wide">
                     <span>Legal business name <b>*</b></span>
@@ -153,6 +161,11 @@
                     <span>Bank account holder <b>*</b></span>
                     <input name="accountHolder" type="text" placeholder="Name shown on bank proof" autocomplete="off" required maxlength="120" />
                     <small>Do not enter an account number in this prototype.</small>
+                  </label>
+
+                  <label class="field">
+                    <span>Vendor service type <small class="field-optional">Optional · helps tailor evidence guidance</small></span>
+                    <span class="select-wrap"><select name="vendorType" id="intake-vendor-type"><option value="">Choose a service type</option></select><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span>
                   </label>
                 </div>
 
@@ -195,7 +208,7 @@
                   <p class="draft-assist-copy">Read vendor files and review source-linked field suggestions before opening the case.</p>
                   <div class="analyst-case-counts" aria-live="polite">
                     <div><span>DETAILS ENTERED</span><strong id="copilot-field-count">0 / 5</strong></div>
-                    <div><span>PACKET FILES</span><strong id="copilot-document-count">0 / 3</strong></div>
+                    <div><span>SUPPORTING DOC TYPES</span><strong id="copilot-document-count">0 / 3</strong></div>
                   </div>
                   <div class="analyst-guidance" id="copilot-guidance">Next step: enter the vendor details, then review the packet before creating the case.</div>
                   <button class="button-primary analyst-read-button" id="copilot-read-button" type="button" disabled>Review packet and suggest fields</button>
@@ -355,6 +368,16 @@
               <article><span class="capability-icon">03</span><div><strong>Guide the next step</strong><p>Explain pending work and prepare a follow-up draft.</p></div></article>
               <article><span class="capability-icon">04</span><div><strong>Check country references</strong><p>Show basic ID hints alongside official source links.</p></div></article>
             </div>
+            <section class="panel evidence-planner-panel" id="vendor-evidence-planner" aria-labelledby="evidence-planner-title">
+              <div class="evidence-planner-heading"><div><span class="section-eyebrow">VENDOR TYPE GUIDANCE · LOCAL DATASET</span><h2 id="evidence-planner-title">What confirmation documents should I request?</h2><p>Choose the work type and relevant exposure. The copilot returns a practical starting checklist for analyst review.</p></div><span class="evidence-planner-mark" aria-hidden="true">✓</span></div>
+              <div class="evidence-planner-controls">
+                <label class="evidence-type-label" for="evidence-vendor-type">Vendor service type<select id="evidence-vendor-type"><option value="">Choose a vendor type</option></select></label>
+                <fieldset class="evidence-scope"><legend>Scope flags (optional)</legend><label><input id="evidence-personal-data" type="checkbox" /> Handles personal or sensitive data</label><label><input id="evidence-onsite" type="checkbox" /> Has staff working at our site</label><label><input id="evidence-cross-border" type="checkbox" /> Goods or services cross borders</label><label><input id="evidence-regulated-goods" type="checkbox" /> Regulated or safety-sensitive products/work</label><label><input id="evidence-production-access" type="checkbox" /> Access to production systems or critical operations</label></fieldset>
+                <button class="button-primary compact" id="build-evidence-checklist" type="button">Build evidence checklist <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="evidence-checklist" id="evidence-checklist" aria-live="polite"><div class="knowledge-empty"><strong>Select a vendor type to begin.</strong><span>Recommendations explain what to ask for and why. Your company policy and reviewer decide what is actually required.</span></div></div>
+              <p class="evidence-planner-disclaimer">Guidance is a free, curated rule set, not legal advice or a universal requirement. Confirm the engagement scope, country, and ASA policy before requesting sensitive records.</p>
+            </section>
             <div class="copilot-summary-kpis">
               <article class="overview-metric"><span>CASES IN SCOPE</span><strong id="copilot-total">0</strong><small>Saved in this browser</small></article>
               <article class="overview-metric"><span>NEED ACTION</span><strong id="copilot-active">0</strong><small>Not yet finalized</small></article>
@@ -384,6 +407,7 @@
                 <button type="button" data-workspace-prompt="attention">What needs attention?</button>
                 <button type="button" data-workspace-prompt="pending">Show Pending follow-ups</button>
                 <button type="button" data-workspace-prompt="documents">What should I check in the packet?</button>
+                <button type="button" data-workspace-prompt="vendor-evidence">What evidence fits this vendor type?</button>
                 <button type="button" data-workspace-prompt="tax">Explain this country's ID hint</button>
               </div>
               <div class="workspace-copilot-reply" id="workspace-copilot-reply" role="status" aria-live="polite">Choose a prompt or ask about your case queue.</div>
@@ -468,8 +492,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
-    <script src="knowledge-base.js?v=1"></script>
+    <script src="knowledge-base.js?v=2"></script>
     <script src="demo-dataset.js?v=4"></script>
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
   </body>
 </html>
