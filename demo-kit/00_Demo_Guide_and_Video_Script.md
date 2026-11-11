@@ -2,12 +2,12 @@
 
 A live happy path, four realistic edge cases, and the words to explain them.
 
-Record one continuous walkthrough of no more than five minutes. The recommended recording is the happy path plus missing bank proof and its response loop. Keep the other three edge cases for the interview; trying to run all four in five minutes leaves too little time to explain the decisions.
+Record one continuous walkthrough of no more than five minutes. Start with the website overview and Copilot, then run the happy path plus missing bank proof and its response loop. Keep the other three edge cases for the interview; trying to run all four in five minutes leaves too little time to explain the decisions.
 
 ## Start here
 
 1. Extract ASA_Demo_Kit.zip and open this guide.
-2. Open https://asa-vendor-ui-review.musicalbraid.chatgpt.site/demo/ and sign in with the Site owner account.
+2. Open https://asa-vendor-review-hub.onrender.com/ (public Render website; no Site owner sign-in is needed).
 3. Use a dedicated browser profile or a fresh private window for rehearsal. Do not delete your working cases. Keep that same browser session for the duplicate test.
 4. Open folder 01_Happy_Path in your file picker, and keep 02_Missing_Bank_Proof nearby.
 5. Rehearse once with a timer. Aim to stop at 4:55; the timestamps are planning estimates, not measured speech timing.
@@ -41,9 +41,18 @@ Missing bank proof: upload only the submission, registration and tax PDFs at int
 
 Invalid tax ID: 00_MANUAL_ENTRY_REFERENCE.pdf is a reading aid only. Do not upload it. Enter its five values into the form manually, then attach the three supporting PDFs. Those documents contain the corrected ID. This isolates a realistic form-entry error and lets you demonstrate paired-source correction without leaving an outdated submission PDF as conflicting evidence.
 
-## Keep the demo repeatable
 
-Run each scenario once in the same clean session. Recreating the happy path in that session will correctly trigger duplicate detection. For another rehearsal, use a new isolated profile/session. Merely removing ?demo=1 does not delete stored cases. Illustrative portfolio records are separate from the live cases you create; do not present them as executed tests.
+---
+
+# Rehearse first. Record fresh.
+
+You can upload the same PDFs again. Rehearse in your normal Chrome window, then record in a NEW Incognito session: close every existing Incognito window first, press Ctrl+Shift+N, and open the Render URL. A second tab or second Incognito window while another is open shares the same temporary storage, so it is not a reset. Keep your normal browser cases untouched.
+
+The fresh recording session starts with the 140 fictional sample cases: 120 Approved, 4 Pending and 16 Rejected. Your Maple Harbor and Amber Field rehearsal cases will not carry over from the normal browser. Upload the SAME PDFs and create those cases again. Run both recording cases in that one new session. If you rehearse in Incognito too, close ALL Incognito windows between rehearsal and recording.
+
+Reloading the page does not reset cases. Creating the same vendor again in the same session correctly triggers a possible duplicate. Clicking Rerun review on an existing case repeats its current checks; it does not undo a vendor response or restore the missing-proof starting state. Use a fresh session to repeat the whole story. For the deliberate duplicate test, retain the approved happy-path case in that SAME session.
+
+Download a NEW vendor request and generate a NEW response JSON during the recording. Old rehearsal response JSON files belong to the old case and request, so do not import them into the new case. The input PDFs can be reused unchanged.
 
 ## Feature checklist for the recording
 
@@ -56,54 +65,65 @@ Use desktop Chrome at 100% zoom, ideally 1440×900 or larger. Check microphone a
 
 ---
 
+# Video script · website tour
+
+0:00–0:50 | Introduce the features before uploading
+
+## 0:00–0:50 | Website overview and Copilot
+
+SHOW / DO: Show Overview (120 Approved, 4 Pending, 16 Rejected sample cases). Briefly point to Review queue, Exception desk, Analytics and Decision outputs. Open Copilot. Point to its reference library and case selector. Return to New review. Explain the capabilities now; demonstrate a real case answer after running your own case.
+
+SAY: This is the vendor review workspace. The overview shows the portfolio; the queue tracks cases; the exception desk brings together issues needing attention; analytics shows trends; and decision outputs keeps outcomes and reasons together. These starting records are fictional examples. Copilot helps at three points: reading labelled PDF fields with source evidence, explaining country ID formats, and answering questions about a selected case. It can explain why a case is pending, which documents disagree, what resolves the issue, and what changed after a response. It is rules-based, and the reviewer remains responsible for judgment. Let’s run a real upload.
+
+## Explain Copilot accurately
+
+PDF intake suggests values for you to confirm. The reference library gives country-format guidance. Case Copilot explains saved checks and links evidence. It does not verify identity, access external registries, or automatically send vendor messages. Use the live case later to demonstrate the answers.
+
+
+---
+
 # Video script · happy path
 
-0:00–1:45 | Exact actions and spoken words
+0:50–2:05 | Exact actions and spoken words
 
-## 0:00–0:20 | Frame the problem
-
-SHOW / DO: Open the dashboard. Keep the browser at 100% zoom and the demo folders beside it.
-
-SAY: A vendor can submit a complete-looking packet and still be unsafe to onboard. This workflow reads the documents, checks completeness and consistency, and gives the reviewer a clear status with the reason and the next action.
-
-## 0:20–0:55 | Happy path: real PDF intake
+## 0:50–1:25 | Happy path: real PDF intake
 
 SHOW / DO: New submission → choose 01_Happy_Path/00_vendor_submission.pdf → Read PDF → Apply all suggestions. Check the fields; attach 01_registration.pdf, 02_tax_document.pdf and 03_bank_proof.pdf in their named slots. Submit and open the new Maple Harbor case.
 
 SAY: I’m starting with a fictional vendor, Maple Harbor. The reader extracts labelled values from this PDF and shows the source page. I confirm those suggestions, then attach separate registration, tax and bank evidence. The submission form alone is not enough to pass the review.
 
-## 0:55–1:20 | Visible execution
+## 1:25–1:45 | Visible execution
 
 SHOW / DO: Click Run review. Let the actual stages finish. Point to the stage results and Approved status.
 
 SAY: The run reads the files, checks the required details and tax-ID shape, and compares the evidence. It also looks for a duplicate in this browser’s history. Here, all configured checks pass, so the case is approved and the result is recorded.
 
-## 1:20–1:45 | Explainable result
+## 1:45–2:05 | Explainable result
 
 SHOW / DO: Click Why this status? Show the evidence comparison and open one registration or tax source. Point to the filename, page and quoted value.
 
-SAY: The decision is inspectable. The case Copilot explains the saved checks, and I can follow a value back to its document and page. This is a rules-based assistant. It explains the evidence we have; it does not independently verify the company with a government registry.
+SAY: Here is Copilot using this case’s saved checks. I can follow the answer back to its source file and page. These checks establish completeness and consistency; they do not verify the company against an external registry.
 
 
 ---
 
 # Video script · edge case
 
-1:45–3:35 | Missing proof and a useful follow-up
+2:05–3:40 | Missing proof and a useful follow-up
 
-## 1:45–2:20 | Edge case: missing evidence
+## 2:05–2:35 | Edge case: missing evidence
 
 SHOW / DO: Close the case. Use 02_Missing_Bank_Proof/00_vendor_submission.pdf, Read PDF and Apply all suggestions. Attach only 01_registration.pdf and 02_tax_document.pdf. Leave Bank proof empty. Submit, open Amber Field and click Run review.
 
 SAY: For the edge case, Amber Field has supplied its company and tax documents but left out bank proof. The form still contains an account-holder name. That claimed value cannot substitute for the missing supporting document, so I’m running the same process with incomplete evidence.
 
-## 2:20–2:50 | Useful Pending state
+## 2:35–2:55 | Useful Pending state
 
 SHOW / DO: Show Pending. Click What resolves this? Point to the missing-bank request and the stage waiting for evidence. Briefly show the vendor request section.
 
 SAY: The outcome is Pending. It is not an automatic rejection. The Copilot identifies the missing bank proof and explains what the vendor needs to supply. The request carries the open requirements, so the analyst can ask a specific question instead of sending a vague follow-up.
 
-## 2:50–3:35 | Vendor response loop
+## 2:55–3:40 | Vendor response loop
 
 SHOW / DO: Download request page. Open that downloaded HTML in a second tab. In Bank proof choose 02_Missing_Bank_Proof/AFTER_REQUEST/03_bank_proof.pdf. Add a note, download the response JSON, return to Amber Field and use Import response. Keep the same case and latest request.
 
@@ -114,15 +134,15 @@ SAY: I’m switching roles to demonstrate the vendor response. The request page 
 
 # Video script · resolution
 
-3:35–4:55 | Show the changed result and close
+3:40–4:55 | Show the changed result and close
 
-## 3:35–4:05 | Recheck and preserve history
+## 3:40–4:10 | Recheck and preserve history
 
 SHOW / DO: Wait for the rerun to finish. Show Approved. Click What changed? and expand or scroll to response history and the audit timeline.
 
 SAY: The new document triggers the checks again. The proof now matches the submission, so this case becomes approved. What changed shows the earlier Pending outcome, while response history preserves the prior decision and evidence. We can explain why the status changed instead of losing the original problem.
 
-## 4:05–4:35 | Portfolio and design judgment
+## 4:10–4:35 | Portfolio and design judgment
 
 SHOW / DO: Close the case. Show Review queue and Decision outputs. Point to the two actual cases just created. If time allows, show the exceptions view without pretending seeded samples were executed.
 
@@ -140,7 +160,7 @@ Use this tested alternative for the same missing-proof case: in Exception Desk c
 
 ## Time budget
 
-The main narration contains approximately 441 words. Speak naturally and leave silent pauses for uploads and result changes. If rehearsal exceeds five minutes, omit the source preview during the happy path or the portfolio detour at the end; preserve the live happy-path and edge-case runs. Do not rush the evidence explanation.
+The main narration contains approximately 495 words. Speak naturally and leave silent pauses for uploads and result changes. If rehearsal exceeds five minutes, omit the source preview during the happy path or the portfolio detour at the end; preserve the live happy-path and edge-case runs. Do not rush the evidence explanation.
 
 
 ---
@@ -254,4 +274,4 @@ In a fresh isolated session, use the happy-path inputs but replace Bank proof wi
 
 ## Last rehearsal check
 
-Confirm you can sign in, upload all PDFs, open the vendor request HTML, locate the downloaded response JSON, and complete the happy path plus missing-proof loop within five minutes. The Site remains owner-private: the hiring team needs an explicitly arranged access method before they can use its link. No sharing permissions were changed for this kit.
+Confirm you can sign in, upload all PDFs, open the vendor request HTML, locate the downloaded response JSON, and complete the happy path plus missing-proof loop within five minutes. The Render website is public. Use its URL for the recording and sharing. The earlier ChatGPT-hosted copy has separate access and browser storage.

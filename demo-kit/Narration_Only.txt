@@ -1,10 +1,10 @@
-A vendor can submit a complete-looking packet and still be unsafe to onboard. This workflow reads the documents, checks completeness and consistency, and gives the reviewer a clear status with the reason and the next action.
+This is the vendor review workspace. The overview shows the portfolio; the queue tracks cases; the exception desk brings together issues needing attention; analytics shows trends; and decision outputs keeps outcomes and reasons together. These starting records are fictional examples. Copilot helps at three points: reading labelled PDF fields with source evidence, explaining country ID formats, and answering questions about a selected case. It can explain why a case is pending, which documents disagree, what resolves the issue, and what changed after a response. It is rules-based, and the reviewer remains responsible for judgment. Let’s run a real upload.
 
 I’m starting with a fictional vendor, Maple Harbor. The reader extracts labelled values from this PDF and shows the source page. I confirm those suggestions, then attach separate registration, tax and bank evidence. The submission form alone is not enough to pass the review.
 
 The run reads the files, checks the required details and tax-ID shape, and compares the evidence. It also looks for a duplicate in this browser’s history. Here, all configured checks pass, so the case is approved and the result is recorded.
 
-The decision is inspectable. The case Copilot explains the saved checks, and I can follow a value back to its document and page. This is a rules-based assistant. It explains the evidence we have; it does not independently verify the company with a government registry.
+Here is Copilot using this case’s saved checks. I can follow the answer back to its source file and page. These checks establish completeness and consistency; they do not verify the company against an external registry.
 
 For the edge case, Amber Field has supplied its company and tax documents but left out bank proof. The form still contains an account-holder name. That claimed value cannot substitute for the missing supporting document, so I’m running the same process with incomplete evidence.
 

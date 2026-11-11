@@ -1,11 +1,11 @@
 ASA PS-2 DEMO KIT
 
 Open 00_Demo_Guide_and_Video_Script.pdf first.
-Recommended 5-minute recording: 01_Happy_Path then 02_Missing_Bank_Proof.
+Recommended 5-minute recording: website and Copilot overview, then 01_Happy_Path and 02_Missing_Bank_Proof.
 Four business edge cases: folders 02 through 05.
 Folder 06 is an extra scanned-document robustness check.
 
-https://asa-vendor-ui-review.musicalbraid.chatgpt.site/demo/
+https://asa-vendor-review-hub.onrender.com/
 
 Use a fresh isolated browser session for each rehearsal. Preserve the happy-path case when testing the duplicate. Do not delete real work. All files are fictional.
 
