@@ -3,23 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#eef4f5" />
+    <meta name="theme-color" content="#f5f7f8" />
     <title>ASA Vendor Review Hub</title>
     <script>
       try {
         if (localStorage.getItem("asa-vendor-intake-theme-v1") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=30" />
+  <link rel="stylesheet" href="assets/case-workspace.css?v=1"/>
   </head>
   <body>
+    <a class="skip-link" href="#page-title">Skip to content</a>
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="#overview" data-view="overview" aria-label="ASA Vendor Review Hub home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 9.75v12.5L16 28.5 5 22.25V9.75L16 3.5Z" stroke="currentColor" stroke-width="1.7"/><path d="m10 17 4 4 8-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          <span class="brand-copy"><strong>Vendor Review Hub</strong><small>ASA ONBOARDING DESK</small></span>
+          <span class="brand-copy"><strong>ASA<span class="brand-dot">.</span></strong><small>VENDOR REVIEW HUB</small></span>
         </a>
 
         <div class="sidebar-label">WORKSPACE</div>
@@ -49,10 +51,10 @@
             <span>Decision outputs</span>
           </button>
           <button class="nav-item copilot-nav-item" type="button" data-view="copilot" title="Open Analyst Copilot">
-            <span class="copilot-nav-top"><span class="copilot-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.1 5.7L20 11l-5.9 2.2L12 19l-2.1-5.8L4 11l5.9-2.3L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg></span><span class="copilot-nav-badge">FEATURED HELP</span></span>
+            <span class="copilot-nav-top"><span class="copilot-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.1 5.7L20 11l-5.9 2.2L12 19l-2.1-5.8L4 11l5.9-2.3L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg></span><span class="copilot-nav-badge">YOUR REVIEW ASSISTANT</span></span>
             <strong class="copilot-nav-title">Analyst Copilot</strong>
             <span class="copilot-nav-description">Packet guidance, country ID hints, and next steps.</span>
-            <span class="copilot-nav-footer">OPEN COPILOT <b aria-hidden="true">→</b></span>
+            <span class="copilot-nav-footer">EXPLORE COPILOT <b aria-hidden="true">→</b></span>
           </button>
         </nav>
 
@@ -81,32 +83,42 @@
           <div class="page-heading">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> VENDOR OPERATIONS <span class="eyebrow-divider">·</span> <span id="page-stage-label">WORKSPACE OVERVIEW</span></div>
-              <h1 id="page-title">Operations overview</h1>
+              <h1 id="page-title" tabindex="-1">Operations overview</h1>
               <p class="page-subtitle" id="page-subtitle">See case volume, decisions, and next actions.</p>
             </div>
             <div class="heading-action" id="heading-action"><span class="secure-icon" id="workspace-status-icon" aria-hidden="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2"/><path d="M7 8V6a3 3 0 0 1 6 0v2"/></svg></span><span id="workspace-privacy-label">Private to this browser</span></div>
           </div>
 
           <section class="view" id="overview-view" aria-labelledby="page-title">
-            <div class="overview-hero panel">
+            <div class="overview-hero panel"><img class="hero-editorial" src="assets/workspace-editorial.jpg" alt="" width="1800" height="1202" fetchpriority="high" />
               <div class="overview-hero-copy">
-                <span class="overview-kicker">ASA VENDOR OPERATIONS</span>
-                <h2>A clear view of every vendor case.</h2>
-                <p>Review packets, resolve gaps, and keep decisions traceable.</p>
+                <span class="overview-kicker">CONNECTED WORK. CONFIDENT DECISIONS.</span>
+                <h2>Great partnerships<br />start with <em>clarity.</em></h2>
+                <p>Your vendor operations, in one place. Move from first submission to a confident, traceable decision.</p>
                 <div class="overview-actions"><button class="button-primary" type="button" data-view="new">New vendor review <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button><button class="button-secondary" type="button" data-view="queue">View queue</button></div>
               </div>
-              <div class="overview-hero-visual"><img src="assets/vendor-operations-hero.png" alt="Procurement analyst reviewing a vendor onboarding packet" width="1024" height="1024" fetchpriority="high" /></div>
+              <div class="hero-portfolio">
+                <div class="portfolio-top"><span><i></i> PORTFOLIO PULSE</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
+                <div class="portfolio-center"><div class="portfolio-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-track" cx="50" cy="50" r="42"/><circle class="ring-value" id="portfolio-ring-value" cx="50" cy="50" r="42" pathLength="100"/></svg><strong id="portfolio-percent">0%</strong></div><div><strong id="portfolio-approved">0 approved</strong><span>of all saved vendor cases</span><small>Every decision, traceable.</small></div></div>
+                <button type="button" data-view="analytics">Explore your portfolio <span aria-hidden="true">→</span></button>
+              </div>
             </div>
             <div class="overview-copilot-strip">
-              <span class="overview-copilot-art" aria-hidden="true"><img src="assets/copilot-document-check.png" alt="" width="512" height="512" /></span>
-              <div class="overview-copilot-copy"><strong>Analyst Copilot</strong><span>Packet checks, country ID help, next steps.</span></div>
+              <span class="overview-copilot-art" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 6L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2L12 3ZM20 16v5m-2.5-2.5h5"/></svg></span>
+              <div class="overview-copilot-copy"><strong>A little guidance. A lot of clarity.</strong><span>Ask Analyst Copilot about packet checks, country IDs, or your next step.</span></div>
               <button type="button" data-view="copilot">Open Copilot <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></button>
             </div>
+            <div class="portfolio-label"><h2>Your portfolio at a glance</h2><span><i></i> Based on saved cases</span></div>
             <div class="overview-metrics">
-              <article class="overview-metric"><span>ALL CASES</span><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
-              <article class="overview-metric"><span>OPEN WORK</span><strong id="overview-active">0</strong><small>Cases still needing an action</small></article>
-              <article class="overview-metric"><span>APPROVED</span><strong id="overview-approved">0</strong><small>Decision recorded</small></article>
-              <article class="overview-metric"><span>NEEDS REVIEW</span><strong id="overview-review">0</strong><small>Pending or unresolved checks</small></article>
+              <article class="overview-metric metric-0"><span>ALL CASES</span><i class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 4v16M4 10h16"/></svg></i><strong id="overview-total">0</strong><small>Recorded in this browser</small></article>
+              <article class="overview-metric metric-1"><span>OPEN WORK</span><i class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></i><strong id="overview-active">0</strong><small>Cases still needing an action</small></article>
+              <article class="overview-metric metric-2"><span>APPROVED</span><i class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></i><strong id="overview-approved">0</strong><small>Decision recorded</small></article>
+              <article class="overview-metric metric-3"><span>NEEDS REVIEW</span><i class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4 22 20H2L12 4ZM12 10v4m0 3h.01"/></svg></i><strong id="overview-review">0</strong><small>Pending or unresolved checks</small></article>
+            </div>
+            <div class="workspace-shortcuts" aria-label="Workspace shortcuts">
+              <button class="shortcut-card shortcut-photo" type="button" data-view="queue"><img src="assets/logistics-editorial.jpg" alt="" width="900" height="600" loading="lazy"/><span class="shortcut-kicker">YOUR VENDOR NETWORK</span><strong>Keep business<br/>moving forward.</strong><span class="shortcut-footer">Explore the review queue <b aria-hidden="true">→</b></span></button>
+              <button class="shortcut-card shortcut-attention" type="button" data-view="exceptions"><span class="shortcut-kicker">A LITTLE ATTENTION, A BIG IMPACT</span><span class="shortcut-orbit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 17H3l9-17ZM12 9v5m0 3h.01"/></svg></span><strong>Turn exceptions<br/>into next steps.</strong><span class="shortcut-footer"><span id="shortcut-open-count">View open exceptions</span> <b aria-hidden="true">→</b></span></button>
+              <button class="shortcut-card shortcut-copilot" type="button" data-view="copilot"><span class="shortcut-kicker">MEET YOUR REVIEW COMPANION</span><span class="copilot-stars" aria-hidden="true">✧<span>✦</span>✧</span><strong>A helping hand.<br/>A clearer decision.</strong><span class="shortcut-footer">Open Analyst Copilot <b aria-hidden="true">→</b></span></button>
             </div>
             <div class="overview-columns">
               <section class="panel overview-list-panel">
@@ -254,6 +266,11 @@
 
             <div class="panel queue-panel">
               <div class="queue-heading"><div><h2 id="queue-title">Submission queue</h2><p>Vendor intake runs recorded in this browser.</p></div><button class="button-primary compact" type="button" data-view="new"><span>New submission</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button></div>
+              <div class="queue-toolbar">
+                <label class="queue-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="queue-search" type="search" placeholder="Search vendors, countries, or run IDs…" aria-label="Search review queue" /></label>
+                <label class="queue-status"><span>Status</span><select id="queue-status" aria-label="Filter queue by status"><option value="">All statuses</option><option>Approved</option><option>Pending</option><option>Rejected</option><option>Received</option></select></label>
+              </div>
+              <p class="queue-filter-count" id="queue-filter-count" role="status" aria-live="polite"></p>
               <div class="table-wrap">
                 <table>
                   <thead><tr><th>VENDOR</th><th>COUNTRY</th><th>RUN ID</th><th>CREATED</th><th>DOCUMENTS</th><th>STATUS</th><th></th></tr></thead>
@@ -261,6 +278,7 @@
                 </table>
                 <div class="empty-state hidden" id="empty-state"><span class="empty-illustration"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h13l8 8v23H15a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3Z"/><path d="M28 8v8h8M19 25h13M19 31h9"/><circle cx="35" cy="35" r="8"/><path d="M35 31v8m-4-4h8"/></svg></span><h3>No submissions yet</h3><p>Create your first vendor submission to start the intake workflow.</p><button class="button-primary compact" type="button" data-view="new"><span>Start first submission</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button></div>
               </div>
+              <div id="queue-no-results" class="queue-no-results hidden"><strong>No matching cases</strong><p>Try another search or choose a different status.</p><button class="button-secondary" id="queue-reset" type="button">Clear filters</button></div>
               <div class="table-foot"><span><span class="table-dot"></span> Local browser records</span><span id="table-count">Showing 0 submissions</span></div>
             </div>
             <div class="queue-note"><span class="info-mark">i</span> This prototype records intake details and attachments locally. Automated document checks are added in later stages.</div>
@@ -538,6 +556,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check">✓</span><span id="toast-message">Submission created</span></div>
     <script src="knowledge-base.js?v=2"></script>
     <script src="demo-dataset.js?v=6"></script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=40"></script>
+    <script src="assets/case-workspace.js?v=1"></script>
   </body>
 </html>

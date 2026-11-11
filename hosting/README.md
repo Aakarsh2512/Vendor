@@ -1,0 +1,1 @@
+Hosted API source for the Cloudflare deployment. extract.mjs uses unpdf 2.1.0 and fflate; index.mjs serves a generated assets.json map. The local application runs independently with server.py. The full deployable repository includes the asset builder and lockfile.

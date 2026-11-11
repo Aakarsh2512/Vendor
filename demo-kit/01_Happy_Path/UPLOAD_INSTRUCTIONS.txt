@@ -1,0 +1,14 @@
+Scenario: 01_Happy_Path
+Expected first result: Approved
+
+Fields:
+legalName: Maple Harbor Supplies Pvt Ltd
+country: India
+taxId: DEMOA4101F
+email: maple@vendor.example
+accountHolder: Maple Harbor Supplies Pvt Ltd
+
+00_vendor_submission.pdf → Choose vendor submission PDF; Read PDF; Apply all suggestions.
+01_registration.pdf → Registration document
+02_tax_document.pdf → Tax document
+03_bank_proof.pdf → Bank proof

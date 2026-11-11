@@ -1,0 +1,14 @@
+Scenario: 02_Missing_Bank_Proof
+Expected first result: Pending
+
+Fields:
+legalName: Amber Field Services Pvt Ltd
+country: India
+taxId: DEMOB4102G
+email: amber@vendor.example
+accountHolder: Amber Field Services Pvt Ltd
+
+00_vendor_submission.pdf → Choose vendor submission PDF; Read PDF; Apply all suggestions.
+01_registration.pdf → Registration document
+02_tax_document.pdf → Tax document
+Leave Bank proof empty at first. Use AFTER_REQUEST/03_bank_proof.pdf only in the later response.

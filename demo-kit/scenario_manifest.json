@@ -1,0 +1,62 @@
+[
+  {
+    "folder": "01_Happy_Path",
+    "fields": {
+      "legalName": "Maple Harbor Supplies Pvt Ltd",
+      "country": "India",
+      "taxId": "DEMOA4101F",
+      "email": "maple@vendor.example",
+      "accountHolder": "Maple Harbor Supplies Pvt Ltd"
+    },
+    "expected": "Approved",
+    "manualEntry": false
+  },
+  {
+    "folder": "02_Missing_Bank_Proof",
+    "fields": {
+      "legalName": "Amber Field Services Pvt Ltd",
+      "country": "India",
+      "taxId": "DEMOB4102G",
+      "email": "amber@vendor.example",
+      "accountHolder": "Amber Field Services Pvt Ltd"
+    },
+    "expected": "Pending",
+    "manualEntry": false
+  },
+  {
+    "folder": "03_Bank_Name_Conflict",
+    "fields": {
+      "legalName": "Willow Crest Logistics Pvt Ltd",
+      "country": "India",
+      "taxId": "DEMOC4103H",
+      "email": "willow@vendor.example",
+      "accountHolder": "Willow Crest Logistics Pvt Ltd"
+    },
+    "expected": "Pending",
+    "manualEntry": false
+  },
+  {
+    "folder": "04_Invalid_Tax_ID",
+    "fields": {
+      "legalName": "Birch Vale Consulting Pvt Ltd",
+      "country": "India",
+      "taxId": "BAD-ID-4104",
+      "email": "birch@vendor.example",
+      "accountHolder": "Birch Vale Consulting Pvt Ltd"
+    },
+    "expected": "Pending",
+    "manualEntry": true
+  },
+  {
+    "folder": "05_Duplicate_Submission",
+    "fields": {
+      "legalName": "Maple Harbor Supplies Pvt Ltd",
+      "country": "India",
+      "taxId": "DEMOA4101F",
+      "email": "maple@vendor.example",
+      "accountHolder": "Maple Harbor Supplies Pvt Ltd"
+    },
+    "expected": "Pending",
+    "manualEntry": false
+  }
+]

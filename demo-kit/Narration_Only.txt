@@ -1,0 +1,19 @@
+A vendor can submit a complete-looking packet and still be unsafe to onboard. This workflow reads the documents, checks completeness and consistency, and gives the reviewer a clear status with the reason and the next action.
+
+I’m starting with a fictional vendor, Maple Harbor. The reader extracts labelled values from this PDF and shows the source page. I confirm those suggestions, then attach separate registration, tax and bank evidence. The submission form alone is not enough to pass the review.
+
+The run reads the files, checks the required details and tax-ID shape, and compares the evidence. It also looks for a duplicate in this browser’s history. Here, all configured checks pass, so the case is approved and the result is recorded.
+
+The decision is inspectable. The case Copilot explains the saved checks, and I can follow a value back to its document and page. This is a rules-based assistant. It explains the evidence we have; it does not independently verify the company with a government registry.
+
+For the edge case, Amber Field has supplied its company and tax documents but left out bank proof. The form still contains an account-holder name. That claimed value cannot substitute for the missing supporting document, so I’m running the same process with incomplete evidence.
+
+The outcome is Pending. It is not an automatic rejection. The Copilot identifies the missing bank proof and explains what the vendor needs to supply. The request carries the open requirements, so the analyst can ask a specific question instead of sending a vague follow-up.
+
+I’m switching roles to demonstrate the vendor response. The request page lets the vendor attach the missing proof and return a response file. In this prototype, the analyst sends and receives these files through an existing channel. Nothing is emailed automatically. Importing the response brings the evidence back into the same case.
+
+The new document triggers the checks again. The proof now matches the submission, so this case becomes approved. What changed shows the earlier Pending outcome, while response history preserves the prior decision and evidence. We can explain why the status changed instead of losing the original problem.
+
+The queue and decision register show the outcomes across runs. I also prepared bank-name conflicts, an invalid tax-ID entry and a duplicate submission for the interview. Each requires a deliberate next step. A duplicate is only a review signal; rejection requires an explicit reviewer decision and a recorded reason.
+
+The prototype stores cases in this browser. Scanned PDFs need manual review, and tax checks validate format rather than registry status. The demonstrated outcome is a runnable, traceable review process with a clear path for resolving missing evidence.

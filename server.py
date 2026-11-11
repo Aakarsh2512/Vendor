@@ -243,12 +243,18 @@ async def extract_documents(
     files: list[UploadFile] = File(...),
     kinds: list[str] = Form(...),
 ) -> dict:
+    if not 1 <= len(files) <= 6:
+        raise HTTPException(status_code=400, detail="Attach between 1 and 6 files.")
+    total_bytes = 0
     if len(files) != len(kinds):
         raise HTTPException(status_code=400, detail="Each attached document needs a document type.")
 
     documents = []
     for upload, kind in zip(files, kinds):
         data = await upload.read(MAX_FILE_BYTES + 1)
+        total_bytes += len(data)
+        if total_bytes > 30 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Combined upload limit is 30 MB.")
         if len(data) > MAX_FILE_BYTES:
             raise HTTPException(status_code=413, detail=f"{upload.filename or 'A file'} exceeds the 10 MB limit.")
         documents.append(

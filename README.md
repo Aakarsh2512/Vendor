@@ -1,3 +1,7 @@
+# Live review, case Copilot, and vendor responses
+
+See [FEATURES.md](FEATURES.md) for the new live runner, source comparison, request/response loop, hosted reader, and current limitations.
+
 # ASA Vendor Review Hub
 
 ## Run locally

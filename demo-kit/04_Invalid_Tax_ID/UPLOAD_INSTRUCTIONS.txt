@@ -1,0 +1,11 @@
+Scenario: 04_Invalid_Tax_ID
+Expected first result: Pending
+
+Fields:
+legalName: Birch Vale Consulting Pvt Ltd
+country: India
+taxId: BAD-ID-4104
+email: birch@vendor.example
+accountHolder: Birch Vale Consulting Pvt Ltd
+
+Enter the fields manually. Do NOT upload 00_MANUAL_ENTRY_REFERENCE.pdf. Upload the other three PDFs in their named supporting-document slots. See the guide for the paired-source correction.

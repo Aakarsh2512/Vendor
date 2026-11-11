@@ -80,15 +80,14 @@
     await new Promise((resolve, reject) => {
       const transaction = db.transaction("documents", "readwrite");
       const store = transaction.objectStore("documents");
-      files.forEach(({ kind, file }) => store.put({
-        id: `${runId}:${kind}`,
-        runId,
-        kind,
-        name: file.name,
-        type: file.type || "application/octet-stream",
-        size: file.size,
-        blob: file,
-      }));
+      files.forEach(({ kind, file }) => {
+        const id = `${runId}:${kind}`;
+        const prior = store.get(id);
+        prior.onsuccess = () => {
+          if (prior.result) store.put({ ...prior.result, id: `${id}:archive:${crypto.randomUUID()}`, archived: true, archivedAt: new Date().toISOString() });
+          store.put({ id, runId, kind, name: file.name, type: file.type || "application/octet-stream", size: file.size, blob: file });
+        };
+      });
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error || new Error("Could not save the attachments."));
       transaction.onabort = () => reject(transaction.error || new Error("Saving attachments was interrupted."));
@@ -102,7 +101,7 @@
       return await new Promise((resolve, reject) => {
         const transaction = db.transaction("documents", "readonly");
         const request = transaction.objectStore("documents").getAll();
-        request.onsuccess = () => resolve(request.result.filter((document) => document.runId === runId));
+        request.onsuccess = () => resolve(request.result.filter((document) => document.runId === runId && !document.archived));
         request.onerror = () => reject(request.error || new Error("Could not load the saved attachments."));
       });
     } finally {
@@ -346,7 +345,7 @@
 
   function configureWorkspaceEnvironment() {
     const isHosted = !IS_LOCAL_DEMO;
-    document.querySelector("#workspace-label").textContent = isHosted ? "HOSTED PREVIEW" : "LOCAL WORKSPACE";
+    document.querySelector("#workspace-label").textContent = isHosted ? "LIVE WORKSPACE" : "LOCAL WORKSPACE";
     document.querySelector("#workspace-privacy-label").textContent = isHosted
       ? "Public prototype · use fictional data only"
       : "Private to this browser";
@@ -408,6 +407,7 @@
     if (scenario === "possible_duplicate") return "duplicate";
     const labels = exceptionSignals(run).map((check) => check.label.toLowerCase()).join(" ");
     if (/duplicate/.test(labels)) return "duplicate";
+    if (/required supporting documents/.test(labels) && !(run.documents || []).some((document) => document.kind === "Bank proof")) return "evidence";
     if (/bank|account holder/.test(labels)) return "bank";
     if (/tax|registration id|format/.test(labels)) return "tax";
     return /document|readab|support/.test(labels) ? "evidence" : "other";
@@ -796,6 +796,7 @@
   }
 
   function renderCopilotSummary() {
+    window.ASAFeatures?.syncCases();
     const runs = readRuns().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const active = runs.filter((run) => !run.finalizedAt);
     const pending = runs.filter((run) => run.decision?.status === "Pending");
@@ -959,6 +960,8 @@
   }
 
   function answerWorkspaceCopilot(question) {
+    const selectedCase = document.querySelector("#copilot-case-picker")?.value;
+    if (selectedCase && window.ASAFeatures) { showRunDetails(selectedCase); window.ASAFeatures.answer(question); return; }
     const query = String(question || "").toLowerCase();
     const runs = readRuns();
     const pending = runs.filter((run) => run.decision?.status === "Pending");
@@ -1001,6 +1004,11 @@
       copilot: ["Analyst Copilot", "Local help for packet review, country ID guidance, and prioritized case actions.", "COPILOT ASSISTANCE"],
     }[view];
     if (!copy) return;
+    document.title = copy[0] + " · ASA Vendor Review Hub";
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      if (item.dataset.view === view) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
     document.querySelectorAll(".view").forEach((section) => section.classList.toggle("hidden", section.id !== view + "-view"));
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
     document.querySelector("#page-title").textContent = copy[0];
@@ -1542,6 +1550,7 @@
     renderFollowUp(run);
     document.querySelector("#finalize-button").dataset.runId = run.id;
     renderFinalization(run);
+    window.ASAFeatures?.render(run);
     if (!dialog.open) dialog.showModal();
   }
 
@@ -2285,8 +2294,8 @@
 
     button.disabled = true;
     button.textContent = "Reading documents…";
-    status.textContent = "Reading files on this device…";
-    results.innerHTML = '<div class="extraction-empty">The local reader is opening each attachment and looking for labelled vendor fields.</div>';
+    status.textContent = "Reading attached document text…";
+    results.innerHTML = '<div class="extraction-empty">The document reader is opening each attachment and looking for labelled vendor fields.</div>';
     document.querySelector(".dialog-stage").textContent = "Stage 2 running · Reading attached documents";
     document.querySelectorAll("#dialog-progress span")[1].classList.add("active");
 
@@ -2338,8 +2347,8 @@
       return hasReadableDocuments;
     } catch (error) {
       status.textContent = "Extraction did not complete.";
-      results.innerHTML = `<div class="extraction-error">${escapeHtml(error.message || "Could not read these documents.")} Start the local reader with <code>py server.py</code>, then retry.</div>`;
-      document.querySelector(".dialog-stage").textContent = "Stage 2 could not run · Start the local reader and try again";
+      results.innerHTML = `<div class="extraction-error">${escapeHtml(error.message || "Could not read these documents.")} Check the reader connection and retry. If running locally, start <code>python server.py</code>.</div>`;
+      document.querySelector(".dialog-stage").textContent = "Stage 2 could not run · Check the reader connection and retry";
       button.disabled = false;
       button.textContent = "Try again";
       return false;
@@ -2741,10 +2750,64 @@
     applyTheme(nextTheme, true);
   });
 
+  window.ASAReview = { readRuns, writeRuns, readFiles, saveFiles, escapeHtml, normalizeComparable, normalizeCountry, fullDate, showToast, showRunDetails, renderQueue, extractRunDocuments, runValidation, runComparison, saveDecision, prepareFollowUp, completeRun, recordAudit, followUpRequests };
   populateVendorTypePickers();
   applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
   configureWorkspaceEnvironment();
   bootstrapLocalDemoDataset();
   updateCopilotReadiness();
   renderQueue();
+})();
+
+// Queue controls filter existing records without changing stored case data.
+(() => {
+  const search = document.querySelector("#queue-search");
+  const status = document.querySelector("#queue-status");
+  const rows = document.querySelector("#submission-rows");
+  const count = document.querySelector("#queue-filter-count");
+  const empty = document.querySelector("#queue-no-results");
+  function filterQueue() {
+    const query = search.value.trim().toLowerCase();
+    let visible = 0;
+    const records = [...rows.querySelectorAll("tr")];
+    records.forEach((row) => {
+      const badge = row.querySelector(".status-badge");
+      const matches = row.textContent.toLowerCase().includes(query) && (!status.value || badge?.textContent.trim() === status.value);
+      row.hidden = !matches;
+      if (matches) visible++;
+    });
+    count.textContent = (query || status.value) ? `Showing ${visible} of ${records.length} cases` : `${records.length} cases in your workspace`;
+    empty.classList.toggle("hidden", visible !== 0 || records.length === 0);
+  }
+  search.addEventListener("input", filterQueue);
+  status.addEventListener("change", filterQueue);
+  document.querySelector("#queue-reset").addEventListener("click", () => { search.value = ""; status.value = ""; filterQueue(); search.focus(); });
+  new MutationObserver(filterQueue).observe(rows, {childList:true});
+  document.querySelectorAll(".nav-item").forEach((button) => { button.title = button.querySelector(".copilot-nav-title")?.textContent || button.querySelector("span")?.textContent || ""; });
+  filterQueue();
+})();
+
+// Live visual summaries use the same saved portfolio totals as the dashboard.
+(() => {
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  function refreshPulse() {
+    const total = Number(document.querySelector('#overview-total').textContent) || 0;
+    const approved = Number(document.querySelector('#overview-approved').textContent) || 0;
+    const exceptions = Number(document.querySelector('#exception-nav-count').textContent) || 0;
+    const percentage = total ? Math.round(approved / total * 100) : 0;
+    document.querySelector('#portfolio-percent').textContent = percentage + '%';
+    document.querySelector('#portfolio-approved').textContent = approved + ' approved';
+    document.querySelector('#portfolio-ring-value').style.strokeDasharray = percentage + ' 100';
+    document.querySelector('#shortcut-open-count').textContent = exceptions ? exceptions + ' open exceptions' : 'Explore the exception desk';
+  }
+  const pulseObserver = new MutationObserver(refreshPulse);
+  ['overview-total','overview-approved','exception-nav-count'].forEach(id => pulseObserver.observe(document.getElementById(id), {childList:true,subtree:true,characterData:true}));
+  refreshPulse();
+  const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }
+  }), {threshold:0.08});
+  document.querySelectorAll('.workspace-shortcuts, .overview-columns, .analytics-panel, .exception-process-panel').forEach(element => {
+    if (!reducedMotion.matches) { element.classList.add('reveal-on-scroll'); revealObserver.observe(element); }
+  });
+  reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('is-visible')); });
 })();

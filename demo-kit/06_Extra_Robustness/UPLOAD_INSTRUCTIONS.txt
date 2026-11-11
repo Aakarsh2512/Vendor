@@ -1,0 +1,1 @@
+In a fresh session use the happy-path intake and registration/tax PDFs. Replace only Bank proof with image_only_bank_proof.pdf. Expect Pending and needs_ocr/manual review. No text layer is present.

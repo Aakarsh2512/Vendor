@@ -1,0 +1,15 @@
+Scenario: 03_Bank_Name_Conflict
+Expected first result: Pending
+
+Fields:
+legalName: Willow Crest Logistics Pvt Ltd
+country: India
+taxId: DEMOC4103H
+email: willow@vendor.example
+accountHolder: Willow Crest Logistics Pvt Ltd
+
+00_vendor_submission.pdf → Choose vendor submission PDF; Read PDF; Apply all suggestions.
+01_registration.pdf → Registration document
+02_tax_document.pdf → Tax document
+03_bank_proof.pdf → Bank proof
+Use CORRECTED/03_bank_proof_corrected.pdf only in the later vendor response.

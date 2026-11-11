@@ -1,0 +1,106 @@
+{
+  "tested": "2026-11-11",
+  "runtime": "Chromium + bundled Worker in Miniflare; actual uploaded PDF files; new browser storage",
+  "results": [
+    {
+      "test": "Happy path: four real PDFs",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    },
+    {
+      "test": "Missing bank proof",
+      "status": "Pending",
+      "flags": [
+        "Required supporting documents",
+        "Bank account holder",
+        "Registered name vs bank account holder"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Missing bank resolved by vendor response",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    },
+    {
+      "test": "Repeated vendor response blocked",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    },
+    {
+      "test": "Conflicting bank proof",
+      "status": "Pending",
+      "flags": [
+        "Bank account holder",
+        "Registered name vs bank account holder",
+        "Conflicting values across documents"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Corrected bank evidence resolves conflict",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    },
+    {
+      "test": "Invalid tax ID entered in form",
+      "status": "Pending",
+      "flags": [
+        "Tax or registration ID format",
+        "Tax or registration ID"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Paired-source tax correction",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    },
+    {
+      "test": "Duplicate submission matched to happy path",
+      "status": "Pending",
+      "flags": [
+        "Possible duplicate submission"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Reasonless rejection blocked",
+      "status": "Pending",
+      "flags": [
+        "Possible duplicate submission"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Duplicate rejected by reasoned reviewer decision",
+      "status": "Rejected",
+      "flags": [
+        "Possible duplicate submission"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Image-only PDF needs manual review",
+      "status": "Pending",
+      "flags": [
+        "Document text readability",
+        "Bank account holder",
+        "Registered name vs bank account holder"
+      ],
+      "detail": ""
+    },
+    {
+      "test": "Direct attachment fallback resolves missing proof",
+      "status": "Approved",
+      "flags": [],
+      "detail": ""
+    }
+  ],
+  "javascriptErrors": []
+}

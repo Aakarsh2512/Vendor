@@ -1,0 +1,12 @@
+ASA PS-2 DEMO KIT
+
+Open 00_Demo_Guide_and_Video_Script.pdf first.
+Recommended 5-minute recording: 01_Happy_Path then 02_Missing_Bank_Proof.
+Four business edge cases: folders 02 through 05.
+Folder 06 is an extra scanned-document robustness check.
+
+https://asa-vendor-ui-review.musicalbraid.chatgpt.site/demo/
+
+Use a fresh isolated browser session for each rehearsal. Preserve the happy-path case when testing the duplicate. Do not delete real work. All files are fictional.
+
+The guide provides exact file-slot mapping, click steps, expected statuses and spoken narration. Narration_Only.txt contains only the main spoken script.
