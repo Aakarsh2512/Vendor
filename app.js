@@ -14,7 +14,7 @@
   const SUBMISSION_PACKET_KIND = "Vendor submission PDF";
   const DEMO_DATASET = window.ASA_DEMO_DATASET || { normalCases: [], edgeCases: [], rejectedCases: [], countryTargets: [] };
   const IS_LOCAL_DEMO = window.location.protocol === "file:" || ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
-  const IS_PRESENTATION_MODE = IS_LOCAL_DEMO || new URLSearchParams(window.location.search).get("demo") === "1";
+  const IS_PRESENTATION_MODE = new URLSearchParams(window.location.search).get("demo") !== "0";
   const FILE_FIELDS = [
     ["registration-file", "Registration document"],
     ["tax-file", "Tax document"],
