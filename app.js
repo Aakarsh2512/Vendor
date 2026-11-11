@@ -359,7 +359,7 @@
   }
 
   function renderQueue() {
-    const runs = readRuns().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const runs = readRuns().sort(newestCasesFirst);
     const body = document.querySelector("#submission-rows");
     const empty = document.querySelector("#empty-state");
     const docTotal = runs.reduce((count, run) => count + (run.documents || []).length, 0);
@@ -497,7 +497,7 @@
   }
 
   function renderOverview() {
-    const runs = readRuns().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const runs = readRuns().sort(newestCasesFirst);
     const active = runs.filter((run) => !run.finalizedAt);
     const approved = runs.filter((run) => run.decision?.status === "Approved").length;
     const needsReview = runs.filter((run) => run.decision?.status === "Pending" || /needs review|needs attention/i.test(run.status || "")).length;
@@ -729,7 +729,7 @@
       reasonChart.innerHTML = '<div class="analytics-empty">No rejected decisions are recorded yet.</div>';
     }
 
-    const orderedRejected = rejectedRuns.slice().sort((a, b) => new Date(b.decision.decidedAt) - new Date(a.decision.decidedAt));
+    const orderedRejected = rejectedRuns.slice().sort((a, b) => newestCasesFirst(a, b, "decidedAt"));
     document.querySelector("#analytics-rejection-rows").innerHTML = orderedRejected.map((run) => {
       const category = run.decision.reasonCategory || run.rejectionCategory || "Other reviewer reason";
       const reason = run.decision.overrideReason || run.reviewerReason || run.decision.reason;
@@ -748,9 +748,15 @@
     ];
     document.querySelector("#analytics-health-grid").innerHTML = health.map(([label, value, detail]) => '<article class="health-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong><small>' + escapeHtml(detail) + '</small></article>').join("");
   }
+  function newestCasesFirst(a, b, field = "createdAt") {
+    const sampleOrder = Number(Boolean(a.demoCase)) - Number(Boolean(b.demoCase));
+    const timestamp = run => Date.parse(field === "decidedAt" ? (run.decision?.decidedAt || run.createdAt) : run.createdAt) || 0;
+    return sampleOrder || timestamp(b) - timestamp(a);
+  }
+
   function renderOutputs() {
     const runs = readRuns();
-    const decisions = runs.filter((run) => run.decision).sort((a, b) => new Date(b.decision.decidedAt) - new Date(a.decision.decidedAt));
+    const decisions = runs.filter((run) => run.decision).sort((a, b) => newestCasesFirst(a, b, "decidedAt"));
     const approved = decisions.filter((run) => run.decision.status === "Approved").length;
     const pending = decisions.filter((run) => run.decision.status === "Pending").length;
     const rejected = decisions.filter((run) => run.decision.status === "Rejected").length;
@@ -797,7 +803,7 @@
 
   function renderCopilotSummary() {
     window.ASAFeatures?.syncCases();
-    const runs = readRuns().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const runs = readRuns().sort(newestCasesFirst);
     const active = runs.filter((run) => !run.finalizedAt);
     const pending = runs.filter((run) => run.decision?.status === "Pending");
     const ready = runs.filter((run) => run.decision && run.followUp && !run.finalizedAt);

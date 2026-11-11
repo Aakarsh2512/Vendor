@@ -1813,3 +1813,17 @@ body,.main-area { background:#f2f6f7; }
  .nav-item.active::before { display:none; }.overview-metric:hover { transform:none; }.page-content .overview-metric > strong { font-size:31px; }
 }
 @media (prefers-reduced-motion:reduce) { .view:not(.hidden),.hero-portfolio { animation:none; }.reveal-on-scroll { opacity:1; transform:none; transition:none; }.ring-value,.shortcut-card,.shortcut-card > img,.overview-metric { transition:none; } }
+
+/* Keep decision text inside its own column, including long reviewer reasons. */
+.output-table { table-layout: fixed; min-width: 1100px; }
+.output-table th:nth-child(1) { width: 25%; }
+.output-table th:nth-child(2) { width: 11%; }
+.output-table th:nth-child(3) { width: 29%; }
+.output-table th:nth-child(4) { width: 14%; }
+.output-table th:nth-child(5) { width: 12%; }
+.output-table th:nth-child(6) { width: 9%; }
+.output-table td { white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.output-table .output-reason { min-width: 0; }
+.output-table .vendor-cell { min-width: 0; }
+.output-table .vendor-cell > span:last-child { white-space: normal; overflow-wrap: anywhere; }
+.output-table .status-badge, .output-table .row-action { white-space: nowrap; }
